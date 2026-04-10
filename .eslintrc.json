@@ -1,0 +1,26 @@
+{
+  "root": true,
+  "extends": [
+    "google",
+    "eslint:recommended",
+    "plugin:@typescript-eslint/recommended",
+    "plugin:@typescript-eslint/eslint-recommended"
+  ],
+  "env": {
+    "node": true,
+    "jest": true
+  },
+  "parser": "@typescript-eslint/parser",
+  "plugins": [
+    "@typescript-eslint"
+  ],
+  "parserOptions": {
+    "ecmaVersion": 2022,
+    "sourceType": "module"
+  },
+  "rules": {
+    "require-jsdoc": "off",
+    "@typescript-eslint/no-empty-interface": "off",
+    "max-len": "off"
+  }
+}

@@ -1,0 +1,13 @@
+**/node_modules/
+coverage/
+
+storage/database/*
+storage/service/*
+!storage/database/.gitkeep
+storage/uploads/*
+!storage/uploads/.gitkeep
+**/dist/
+.env
+.eslintcache
+yarn*.log
+dist/src/
