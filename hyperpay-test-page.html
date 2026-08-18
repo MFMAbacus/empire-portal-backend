@@ -1,0 +1,636 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>HyperPay Integration Test Page</title>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 20px;
+        background-color: #f5f5f5;
+      }
+      .container {
+        background: white;
+        padding: 20px;
+        border-radius: 8px;
+        margin-bottom: 20px;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+      }
+      .step {
+        border-left: 4px solid #007bff;
+        padding-left: 15px;
+        margin-bottom: 30px;
+      }
+      .step h3 {
+        color: #007bff;
+        margin-top: 0;
+      }
+      textarea,
+      input[type="text"] {
+        width: 100%;
+        padding: 10px;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+        font-family: monospace;
+        font-size: 12px;
+      }
+      textarea {
+        height: 150px;
+        resize: vertical;
+      }
+      button {
+        background: #007bff;
+        color: white;
+        border: none;
+        padding: 10px 20px;
+        border-radius: 4px;
+        cursor: pointer;
+        margin: 5px 5px 5px 0;
+      }
+      button:hover {
+        background: #0056b3;
+      }
+      button:disabled {
+        background: #6c757d;
+        cursor: not-allowed;
+      }
+      .response {
+        background: #f8f9fa;
+        border: 1px solid #dee2e6;
+        border-radius: 4px;
+        padding: 15px;
+        margin-top: 10px;
+        white-space: pre-wrap;
+        font-family: monospace;
+        font-size: 12px;
+      }
+      .success {
+        background: #d4edda;
+        border-color: #c3e6cb;
+        color: #155724;
+      }
+      .error {
+        background: #f8d7da;
+        border-color: #f5c6cb;
+        color: #721c24;
+      }
+      .warning {
+        background: #fff3cd;
+        border-color: #ffeaa7;
+        color: #856404;
+      }
+      .payment-form {
+        border: 2px dashed #007bff;
+        padding: 20px;
+        text-align: center;
+        min-height: 200px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+      .hidden {
+        display: none;
+      }
+      .status-indicator {
+        display: inline-block;
+        width: 12px;
+        height: 12px;
+        border-radius: 50%;
+        margin-right: 8px;
+      }
+      .status-pending {
+        background: #ffc107;
+      }
+      .status-success {
+        background: #28a745;
+      }
+      .status-error {
+        background: #dc3545;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <h1>🚀 HyperPay Integration Test Page</h1>
+      <p>Test your HyperPay integration step by step</p>
+    </div>
+
+    <!-- Step 0: Authentication -->
+    <div class="container">
+      <div class="step">
+        <h3>
+          <span class="status-indicator status-pending" id="step0-status"></span
+          >Step 0: Authentication
+        </h3>
+
+        <label><strong>Backend URL:</strong></label>
+        <input
+          type="text"
+          id="auth-backend-url"
+          value="http://localhost:5000"
+          placeholder="http://localhost:5000"
+        />
+
+        <label><strong>Login Payload (JSON):</strong></label>
+        <textarea
+          id="login-payload"
+          placeholder="Enter your login payload here..."
+        >
+{
+    "login":"empire@world",
+    "password": "Empire@2023",
+    "role": "manager"
+}</textarea
+        >
+
+        <button onclick="signIn()" id="signin-btn">Sign In</button>
+        <button onclick="clearStep0()">Clear</button>
+
+        <div id="auth-response" class="response hidden"></div>
+
+        <label><strong>Session ID:</strong></label>
+        <input
+          type="text"
+          id="session-id"
+          placeholder="Will be auto-filled after login"
+          readonly
+        />
+      </div>
+    </div>
+
+    <!-- Step 1: Create Checkout -->
+    <div class="container">
+      <div class="step">
+        <h3>
+          <span class="status-indicator status-pending" id="step1-status"></span
+          >Step 1: Create Checkout Session
+        </h3>
+
+        <label><strong>Backend URL:</strong></label>
+        <input
+          type="text"
+          id="backend-url"
+          value="http://localhost:5000"
+          placeholder="http://localhost:5000"
+        />
+
+        <label><strong>Request Payload (JSON):</strong></label>
+        <textarea
+          id="checkout-payload"
+          placeholder="Enter your checkout payload here..."
+        >
+{
+  
+  "method": "credit-card",
+  "requests": [
+    {
+      "id":  "RM-373715",
+      "amount": 50.00,
+      "amountPaid": 1
+    }
+  ],
+  "remarks": "Test HyperPay payment"
+}</textarea
+        >
+
+        <button onclick="createCheckout()" id="create-checkout-btn" disabled>
+          Create Checkout (Sign in first)
+        </button>
+        <button onclick="clearStep1()">Clear</button>
+
+        <div id="checkout-response" class="response hidden"></div>
+      </div>
+    </div>
+
+    <!-- Step 2: Payment Form -->
+    <div class="container">
+      <div class="step">
+        <h3>
+          <span class="status-indicator status-pending" id="step2-status"></span
+          >Step 2: Payment Form
+        </h3>
+
+        <label><strong>Checkout ID:</strong></label>
+        <input
+          type="text"
+          id="checkout-id"
+          placeholder="Paste checkout ID from Step 1 response"
+        />
+
+        <button onclick="loadPaymentForm()" id="load-payment-btn" disabled>
+          Load Payment Form
+        </button>
+        <button onclick="clearStep2()">Clear Payment Form</button>
+
+        <div id="payment-container" class="payment-form hidden">
+          <div id="payment-loading">
+            Click "Load Payment Form" to begin payment...
+          </div>
+          <form
+            id="payment-form"
+            class="paymentWidgets"
+            data-brands="VISA MASTER"
+          ></form>
+        </div>
+
+        <div id="payment-response" class="response hidden"></div>
+      </div>
+    </div>
+
+    <!-- Step 3: Status Check -->
+    <div class="container">
+      <div class="step">
+        <h3>
+          <span class="status-indicator status-pending" id="step3-status"></span
+          >Step 3: Payment Status Verification
+        </h3>
+
+        <label><strong>Resource Path:</strong></label>
+        <input
+          type="text"
+          id="resource-path"
+          placeholder="Will be auto-filled after payment completion"
+        />
+
+        <button onclick="checkPaymentStatus()" id="check-status-btn" disabled>
+          Check Payment Status
+        </button>
+        <button onclick="checkByCheckoutId()" id="check-by-id-btn" disabled>
+          Check by Checkout ID
+        </button>
+        <button onclick="clearStep3()">Clear</button>
+
+        <div id="status-response" class="response hidden"></div>
+      </div>
+    </div>
+
+    <!-- Test Cards Info -->
+    <div class="container">
+      <h3>💳 Test Card Numbers</h3>
+      <ul>
+        <li>
+          <strong>Success:</strong> 4005550000000001, Exp: 05/25, CVV: 123
+        </li>
+        <li>
+          <strong>Failure:</strong> 4005550000000001, Exp: 05/18, CVV: 123
+        </li>
+        <li>
+          <strong>Alternative:</strong> 5541805721646120, Exp: 12/2025, CVV: 123
+        </li>
+      </ul>
+    </div>
+
+    <script>
+      let currentCheckoutId = "";
+      let currentResourcePath = "";
+      let backendUrl = "";
+      let sessionId = "";
+
+      // Step 0: Authentication
+      async function signIn() {
+        const btn = document.getElementById("signin-btn");
+        const responseDiv = document.getElementById("auth-response");
+        const step0Status = document.getElementById("step0-status");
+
+        backendUrl = document
+          .getElementById("auth-backend-url")
+          .value.replace(/\/$/, "");
+        const payload = document.getElementById("login-payload").value;
+
+        try {
+          btn.disabled = true;
+          btn.textContent = "Signing In...";
+          step0Status.className = "status-indicator status-pending";
+
+          const response = await fetch(`${backendUrl}/auth/sign-in`, {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: payload,
+          });
+
+          const data = await response.json();
+
+          responseDiv.className =
+            "response " + (response.ok ? "success" : "error");
+          responseDiv.textContent = JSON.stringify(data, null, 2);
+          responseDiv.classList.remove("hidden");
+
+          if (response.ok && data.success) {
+            sessionId = data.data.id;
+            document.getElementById("session-id").value = sessionId;
+            document.getElementById("backend-url").value = backendUrl;
+            const checkoutBtn = document.getElementById("create-checkout-btn");
+            checkoutBtn.disabled = false;
+            checkoutBtn.textContent = "Create Checkout";
+            step0Status.className = "status-indicator status-success";
+
+            // Update status text
+            btn.textContent = "✓ Signed In Successfully";
+            btn.style.background = "#28a745";
+          } else {
+            step0Status.className = "status-indicator status-error";
+          }
+        } catch (error) {
+          responseDiv.className = "response error";
+          responseDiv.textContent = `Error: ${error.message}`;
+          responseDiv.classList.remove("hidden");
+          step0Status.className = "status-indicator status-error";
+        } finally {
+          if (!sessionId) {
+            btn.disabled = false;
+            btn.textContent = "Sign In";
+          }
+        }
+      }
+
+      // Step 1: Create Checkout
+      async function createCheckout() {
+        if (!sessionId) {
+          alert("Please sign in first!");
+          return;
+        }
+
+        const btn = document.getElementById("create-checkout-btn");
+        const responseDiv = document.getElementById("checkout-response");
+        const step1Status = document.getElementById("step1-status");
+
+        backendUrl = document
+          .getElementById("backend-url")
+          .value.replace(/\/$/, "");
+        const payload = document.getElementById("checkout-payload").value;
+
+        try {
+          btn.disabled = true;
+          btn.textContent = "Creating...";
+          step1Status.className = "status-indicator status-pending";
+
+          const response = await fetch(
+            `${backendUrl}/v1/hyperpay/checkout?sessionId=${sessionId}`,
+            {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+              },
+              body: payload,
+            }
+          );
+
+          const data = await response.json();
+
+          responseDiv.className =
+            "response " + (response.ok ? "success" : "error");
+          responseDiv.textContent = JSON.stringify(data, null, 2);
+          responseDiv.classList.remove("hidden");
+
+          if (response.ok && data.success) {
+            currentCheckoutId = data.data.checkoutId;
+            document.getElementById("checkout-id").value = currentCheckoutId;
+            document.getElementById("load-payment-btn").disabled = false;
+            step1Status.className = "status-indicator status-success";
+
+            // Auto-fill resource path
+            currentResourcePath = `/v1/checkouts/${currentCheckoutId}/payment`;
+            document.getElementById("resource-path").value =
+              currentResourcePath;
+            document.getElementById("check-by-id-btn").disabled = false;
+          } else {
+            step1Status.className = "status-indicator status-error";
+          }
+        } catch (error) {
+          responseDiv.className = "response error";
+          responseDiv.textContent = `Error: ${error.message}`;
+          responseDiv.classList.remove("hidden");
+          step1Status.className = "status-indicator status-error";
+        } finally {
+          btn.disabled = false;
+          btn.textContent = "Create Checkout";
+        }
+      }
+
+      // Step 2: Load Payment Form
+      function loadPaymentForm() {
+        const checkoutId = document.getElementById("checkout-id").value;
+        const paymentContainer = document.getElementById("payment-container");
+        const step2Status = document.getElementById("step2-status");
+
+        if (!checkoutId) {
+          alert("Please enter a checkout ID");
+          return;
+        }
+
+        currentCheckoutId = checkoutId;
+        currentResourcePath = `/v1/checkouts/${checkoutId}/payment`;
+        document.getElementById("resource-path").value = currentResourcePath;
+
+        // Remove any existing payment script
+        const existingScript = document.getElementById("hyperpay-script");
+        if (existingScript) {
+          existingScript.remove();
+        }
+
+        // Load HyperPay payment widget
+        const script = document.createElement("script");
+        script.id = "hyperpay-script";
+        script.src = `https://eu-test.oppwa.com/v1/paymentWidgets.js?checkoutId=${checkoutId}`;
+        script.onload = function () {
+          paymentContainer.classList.remove("hidden");
+          document.getElementById("payment-loading").textContent =
+            "Payment form loaded! Fill in card details below:";
+          step2Status.className = "status-indicator status-success";
+        };
+        script.onerror = function () {
+          const responseDiv = document.getElementById("payment-response");
+          responseDiv.className = "response error";
+          responseDiv.textContent =
+            "Failed to load payment form. Check checkout ID.";
+          responseDiv.classList.remove("hidden");
+          step2Status.className = "status-indicator status-error";
+        };
+
+        document.head.appendChild(script);
+        step2Status.className = "status-indicator status-pending";
+
+        // Set up payment options
+        window.wpwlOptions = {
+          style: "card",
+          locale: "en",
+          onReady: function () {
+            console.log("Payment form ready");
+          },
+          onPaymentResult: function (result) {
+            console.log("Payment completed:", result);
+
+            const responseDiv = document.getElementById("payment-response");
+            responseDiv.className = "response success";
+            responseDiv.textContent = `Payment Result:\n${JSON.stringify(
+              result,
+              null,
+              2
+            )}`;
+            responseDiv.classList.remove("hidden");
+
+            // Enable status check
+            document.getElementById("check-status-btn").disabled = false;
+
+            // Auto-check status after 2 seconds
+            setTimeout(() => {
+              checkPaymentStatus();
+            }, 2000);
+          },
+        };
+      }
+
+      // Step 3: Check Payment Status
+      async function checkPaymentStatus() {
+        if (!sessionId) {
+          alert("Please sign in first!");
+          return;
+        }
+
+        const btn = document.getElementById("check-status-btn");
+        const responseDiv = document.getElementById("status-response");
+        const step3Status = document.getElementById("step3-status");
+
+        const resourcePath = document.getElementById("resource-path").value;
+
+        if (!resourcePath) {
+          alert("Please enter a resource path");
+          return;
+        }
+
+        try {
+          btn.disabled = true;
+          btn.textContent = "Checking...";
+          step3Status.className = "status-indicator status-pending";
+
+          const response = await fetch(
+            `${backendUrl}/v1/hyperpay/status?sessionId=${sessionId}`,
+            {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+              },
+              body: JSON.stringify({ resourcePath }),
+            }
+          );
+
+          const data = await response.json();
+
+          responseDiv.className =
+            "response " + (response.ok ? "success" : "error");
+          responseDiv.textContent = JSON.stringify(data, null, 2);
+          responseDiv.classList.remove("hidden");
+
+          if (response.ok) {
+            step3Status.className = "status-indicator status-success";
+          } else {
+            step3Status.className = "status-indicator status-error";
+          }
+        } catch (error) {
+          responseDiv.className = "response error";
+          responseDiv.textContent = `Error: ${error.message}`;
+          responseDiv.classList.remove("hidden");
+          step3Status.className = "status-indicator status-error";
+        } finally {
+          btn.disabled = false;
+          btn.textContent = "Check Payment Status";
+        }
+      }
+
+      // Check by Checkout ID
+      async function checkByCheckoutId() {
+        if (!sessionId) {
+          alert("Please sign in first!");
+          return;
+        }
+
+        if (!currentCheckoutId) {
+          alert("No checkout ID available");
+          return;
+        }
+
+        const responseDiv = document.getElementById("status-response");
+
+        try {
+          const response = await fetch(
+            `${backendUrl}/v1/hyperpay/status/${currentCheckoutId}?sessionId=${sessionId}`
+          );
+          const data = await response.json();
+
+          responseDiv.className =
+            "response " + (response.ok ? "warning" : "error");
+          responseDiv.textContent = `Checkout ID Status Check:\n${JSON.stringify(
+            data,
+            null,
+            2
+          )}`;
+          responseDiv.classList.remove("hidden");
+        } catch (error) {
+          responseDiv.className = "response error";
+          responseDiv.textContent = `Error: ${error.message}`;
+          responseDiv.classList.remove("hidden");
+        }
+      }
+
+      // Clear functions
+      function clearStep0() {
+        document.getElementById("auth-response").classList.add("hidden");
+        document.getElementById("session-id").value = "";
+        document.getElementById("signin-btn").textContent = "Sign In";
+        document.getElementById("signin-btn").style.background = "#007bff";
+        document.getElementById("signin-btn").disabled = false;
+        document.getElementById("step0-status").className =
+          "status-indicator status-pending";
+        document.getElementById("create-checkout-btn").disabled = true;
+        sessionId = "";
+      }
+
+      function clearStep1() {
+        document.getElementById("checkout-response").classList.add("hidden");
+        document.getElementById("checkout-id").value = "";
+        document.getElementById("load-payment-btn").disabled = true;
+        document.getElementById("step1-status").className =
+          "status-indicator status-pending";
+      }
+
+      function clearStep2() {
+        document.getElementById("payment-container").classList.add("hidden");
+        document.getElementById("payment-response").classList.add("hidden");
+        document.getElementById("check-status-btn").disabled = true;
+        document.getElementById("step2-status").className =
+          "status-indicator status-pending";
+
+        const existingScript = document.getElementById("hyperpay-script");
+        if (existingScript) {
+          existingScript.remove();
+        }
+      }
+
+      function clearStep3() {
+        document.getElementById("status-response").classList.add("hidden");
+        document.getElementById("step3-status").className =
+          "status-indicator status-pending";
+      }
+
+      // Enable checkout ID input changes
+      document
+        .getElementById("checkout-id")
+        .addEventListener("input", function () {
+          const checkoutId = this.value.trim();
+          document.getElementById("load-payment-btn").disabled = !checkoutId;
+          document.getElementById("check-by-id-btn").disabled = !checkoutId;
+
+          if (checkoutId) {
+            document.getElementById(
+              "resource-path"
+            ).value = `/v1/checkouts/${checkoutId}/payment`;
+          }
+        });
+    </script>
+  </body>
+</html>
