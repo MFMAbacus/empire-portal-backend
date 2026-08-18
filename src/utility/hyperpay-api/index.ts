@@ -1,1 +1,0 @@
-export { HyperPayApi } from "./hyperpay-api";
