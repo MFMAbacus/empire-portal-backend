@@ -46,6 +46,8 @@ import { CronSchedular } from "@/services/cron-schedular";
 import { welcomescreenMediaRouter } from "./routers/welcomescreen-media-router";
 import { transactionsRouter } from "./routers/transactions-router";
 import { generalConfigurationsRouter } from "./routers/general-configurations-router";
+import { propertyMasterRouter } from "./routers/property-master-router";
+import { apartmentMasterRouter } from "./routers/apartment-master-router";
 import { MigrationRunner } from "@/migrations";
 import { transactionsExcelHandler } from "./handlers/transactions-excel-handler";
 import { customerExcelHandler } from "./handlers/customer-excel-handler";
@@ -116,6 +118,9 @@ app.use("/payment", hyperPayRouter); // For result endpoint
 app.use("/welcomescreen-media", welcomescreenMediaRouter);
 app.use("/transactions", transactionsRouter);
 app.use("/general-configurations", generalConfigurationsRouter);
+app.use("/property-master", propertyMasterRouter);
+app.use("/apartment-master", apartmentMasterRouter);
+app.use("/properties", propertyMasterRouter);
 app.use("*", notFoundHandler);
 app.use(errorHandler);
 

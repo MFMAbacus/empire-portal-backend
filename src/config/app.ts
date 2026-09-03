@@ -1,7 +1,7 @@
 import { env } from "@/utility/env";
 
 export const host = env("host", "localhost");
-export const port = Number(env("port", "3000"));
+export const port = Number(env("port", "5000"));
 
 export const b1User = env("b1_user", "b1_user");
 export const b1Password = env("b1_password", "b1_password");
