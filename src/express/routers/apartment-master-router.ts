@@ -5,7 +5,7 @@ import { combineRequestInput } from "@/express/combine-request-input";
 
 import { getApartmentMasterService } from "@/services/get-apartment-master-service";
 import { getSingleApartmentMasterService } from "@/services/get-single-apartment-master-service";
-import { createAparmentMasterService } from "@/services/create-apartment-master-service";
+import { createApartmentMasterService } from "@/services/create-apartment-master-service";
 import { updateApartmentMasterService } from "@/services/update-apartment-master-service";
 
 import { deleteApartmentMasterService } from "@/services/delete-apartment-master-service";
@@ -35,7 +35,7 @@ apartmentMasterRouter.get("/:id", async (request, response, next) => {
 apartmentMasterRouter.post("/", async (request, response, next) => {
   try {
     const input = combineRequestInput(request);
-    const result = await createAparmentMasterService.execute(input);
+    const result = await createApartmentMasterService.execute(input);
     return presentResult(result, response);
   } catch (error: unknown) {
     next(error);

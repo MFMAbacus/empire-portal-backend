@@ -48,6 +48,8 @@ import { transactionsRouter } from "./routers/transactions-router";
 import { generalConfigurationsRouter } from "./routers/general-configurations-router";
 import { propertyMasterRouter } from "./routers/property-master-router";
 import { apartmentMasterRouter } from "./routers/apartment-master-router";
+
+import { residentMasterRouter } from "./routers/resident-master-router";
 import { MigrationRunner } from "@/migrations";
 import { transactionsExcelHandler } from "./handlers/transactions-excel-handler";
 import { customerExcelHandler } from "./handlers/customer-excel-handler";
@@ -120,6 +122,8 @@ app.use("/transactions", transactionsRouter);
 app.use("/general-configurations", generalConfigurationsRouter);
 app.use("/property-master", propertyMasterRouter);
 app.use("/apartment-master", apartmentMasterRouter);
+
+app.use("/resident-master", residentMasterRouter);
 app.use("/properties", propertyMasterRouter);
 app.use("*", notFoundHandler);
 app.use(errorHandler);

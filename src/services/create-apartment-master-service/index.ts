@@ -3,7 +3,7 @@ import { CreateApartmentMasterService } from "./create-apartment-master-service"
 import { getSessionService } from "@/services/get-session-service";
 import { apartmentMasterRepository } from "@/repositories/apartment-master-repository";
 
-export const createAparmentMasterService = new AccessMediatorService({
+export const createApartmentMasterService = new AccessMediatorService({
   getSessionService,
   service: new CreateApartmentMasterService({
     apartmentMasterRepository,
