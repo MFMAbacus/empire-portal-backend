@@ -56,6 +56,7 @@ import { gateMasterRouter } from "./routers/gate-master-router";
 import { guardAccountMappingMasterRouter } from "./routers/guard-account-mapping-master-router";
 import { securityCoordinatorMasterRouter } from "./routers/security-coordinator-master-router";
 import { vehicleTypeMasterRouter } from "./routers/vehicle-type-master-router";
+import { qrConfigurationMasterRouter } from "./routers/qr-configuration-master-router";
 
 import { userMasterRouter } from "./routers/user-master-router";
 import { MigrationRunner } from "@/migrations";
@@ -137,7 +138,8 @@ app.use("/approval-routing-master", approvalRoutingMasterRouter);
 app.use("/gate-master", gateMasterRouter);
 app.use("/guard-account-mapping-master", guardAccountMappingMasterRouter);
 app.use("/security-coordinator-master", securityCoordinatorMasterRouter);
-app.use("/vehicle-type-master", vehicleTypeMasterRouter)
+app.use("/vehicle-type-master", vehicleTypeMasterRouter);
+app.use("/qr-configuration-master", qrConfigurationMasterRouter);
 app.use("/user-master", userMasterRouter);
 app.use("/properties", propertyMasterRouter);
 app.use("*", notFoundHandler);
