@@ -57,7 +57,10 @@ import { guardAccountMappingMasterRouter } from "./routers/guard-account-mapping
 import { securityCoordinatorMasterRouter } from "./routers/security-coordinator-master-router";
 import { vehicleTypeMasterRouter } from "./routers/vehicle-type-master-router";
 import { qrConfigurationMasterRouter } from "./routers/qr-configuration-master-router";
-
+import { movementTypeMasterRouter } from "./routers/movement-type-master-router";
+import { itemTypeMasterRouter } from "./routers/item-type-master-router";
+import { movementRuleMasterRouter } from "./routers/movement-rule-router";
+import { propertyManagementApprovalMasterRouter } from "./routers/property-management-approval-master-router";
 import { userMasterRouter } from "./routers/user-master-router";
 import { MigrationRunner } from "@/migrations";
 import { transactionsExcelHandler } from "./handlers/transactions-excel-handler";
@@ -140,6 +143,10 @@ app.use("/guard-account-mapping-master", guardAccountMappingMasterRouter);
 app.use("/security-coordinator-master", securityCoordinatorMasterRouter);
 app.use("/vehicle-type-master", vehicleTypeMasterRouter);
 app.use("/qr-configuration-master", qrConfigurationMasterRouter);
+app.use("/movement-type-master", movementTypeMasterRouter);
+app.use("/item-type-master", itemTypeMasterRouter);
+app.use("/movement-rule-master", movementRuleMasterRouter);
+app.use("/property-management-approval-master", propertyManagementApprovalMasterRouter);
 app.use("/user-master", userMasterRouter);
 app.use("/properties", propertyMasterRouter);
 app.use("*", notFoundHandler);
