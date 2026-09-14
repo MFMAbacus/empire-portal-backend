@@ -64,6 +64,10 @@ import { propertyManagementApprovalMasterRouter } from "./routers/property-manag
 import { accessCardMasterRouter } from "./routers/access-card-master-router";
 import { cardReplacementReasonMasterRouter } from "./routers/card-replacement-reason-master-router";
 import { replacementFeeMasterRouter } from "./routers/replacement-fee-master-router";
+import { accessCardStaffMasterRouter } from "./routers/access-card-staff-master-router";
+import { deliverySLAMasterRouter } from "./routers/delivery-sla-master-router";
+import { venueMasterRouter } from "./routers/venue-master-router";
+import { projectVenueMasterRouter } from "./routers/project-venue-master-router";
 import { userMasterRouter } from "./routers/user-master-router";
 import { MigrationRunner } from "@/migrations";
 import { transactionsExcelHandler } from "./handlers/transactions-excel-handler";
@@ -153,6 +157,10 @@ app.use("/property-management-approval-master", propertyManagementApprovalMaster
 app.use("/access-card-master", accessCardMasterRouter);
 app.use("/card-replacement-reason-master", cardReplacementReasonMasterRouter);
 app.use("/replacement-fee-master", replacementFeeMasterRouter);
+app.use("/access-card-staff-master", accessCardStaffMasterRouter);
+app.use("/delivery-sla-master", deliverySLAMasterRouter);
+app.use("/venue-master", venueMasterRouter);
+app.use("/project-venue-master", projectVenueMasterRouter);
 app.use("/user-master", userMasterRouter);
 app.use("/properties", propertyMasterRouter);
 app.use("*", notFoundHandler);

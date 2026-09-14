@@ -1,6 +1,6 @@
 import { Result } from "@/utility/result";
 import { Failure } from "@/utility/failure";
-import { ApartmentMasterModel } from "@/models/aparment-master-model";
+import { ApartmentMasterModel } from "@/models/apartment-master-model";
 import { ApartmentMasterRepository } from "@/repositories/apartment-master-repository";
 
 type Props = {
