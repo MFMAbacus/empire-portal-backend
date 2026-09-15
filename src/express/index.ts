@@ -39,7 +39,7 @@ import { invoicesPaymentsRouter } from "@/express/routers/invoices-payments-rout
 import { propertyTypesRouter } from "@/express/routers/property-types-router";
 import { fastPayRouter } from "@/express/routers/fastpay-router";
 import { hyperPayRouter } from "@/express/routers/hyperpay-router";
-
+import { userRoleRouter } from "./routers/role-router"; // Apne path ke mutabiq
 import { connection } from "@/db/conn";
 import cors from "cors";
 import { CronSchedular } from "@/services/cron-schedular";
@@ -68,6 +68,7 @@ import { accessCardStaffMasterRouter } from "./routers/access-card-staff-master-
 import { deliverySLAMasterRouter } from "./routers/delivery-sla-master-router";
 import { venueMasterRouter } from "./routers/venue-master-router";
 import { projectVenueMasterRouter } from "./routers/project-venue-master-router";
+import { venueOperatingMasterRouter } from "./routers/venue-operating-master-router";
 import { userMasterRouter } from "./routers/user-master-router";
 import { MigrationRunner } from "@/migrations";
 import { transactionsExcelHandler } from "./handlers/transactions-excel-handler";
@@ -139,6 +140,8 @@ app.use("/payment", hyperPayRouter); // For result endpoint
 app.use("/welcomescreen-media", welcomescreenMediaRouter);
 app.use("/transactions", transactionsRouter);
 app.use("/general-configurations", generalConfigurationsRouter);
+app.use("/user-role", userRoleRouter);
+app.use("/role", userRoleRouter);
 app.use("/property-master", propertyMasterRouter);
 app.use("/apartment-master", apartmentMasterRouter);
 
@@ -161,6 +164,7 @@ app.use("/access-card-staff-master", accessCardStaffMasterRouter);
 app.use("/delivery-sla-master", deliverySLAMasterRouter);
 app.use("/venue-master", venueMasterRouter);
 app.use("/project-venue-master", projectVenueMasterRouter);
+app.use("/venue-operating-master", venueOperatingMasterRouter);
 app.use("/user-master", userMasterRouter);
 app.use("/properties", propertyMasterRouter);
 app.use("*", notFoundHandler);
