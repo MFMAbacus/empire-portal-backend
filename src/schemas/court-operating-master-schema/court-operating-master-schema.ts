@@ -1,8 +1,8 @@
 import mongoose, { Schema, Document } from "mongoose";
 
-export interface IVenueOperatingMaster extends Document {
+export interface ICourtOperatingMaster extends Document {
   id: string;
-  venueId: string;
+  courtId: string;
   day: string;
   openTime: string;
   closeTime: string;
@@ -11,10 +11,10 @@ export interface IVenueOperatingMaster extends Document {
   isArchived: boolean;
 }
 
-const VenueOperatingMasterSchema: Schema = new Schema(
+const CourtOperatingMasterSchema: Schema = new Schema(
   {
     id: { type: String, required: true, unique: true },
-    venueId: { type: String, required: true },
+    courtId: { type: String, required: true },
     day: { type: String, required: true },
     openTime: { type: String, required: true },
     closeTime: { type: String, required: true },
@@ -25,9 +25,9 @@ const VenueOperatingMasterSchema: Schema = new Schema(
   { timestamps: true }
 );
 
-const VenueOperatingMaster = mongoose.models.VenueOperatingMaster || mongoose.model<IVenueOperatingMaster>(
-  "VenueOperatingMaster",
-  VenueOperatingMasterSchema
+const CourtOperatingMaster = mongoose.models.CourtOperatingMaster || mongoose.model<ICourtOperatingMaster>(
+  "CourtOperatingMaster",
+  CourtOperatingMasterSchema
 );
 
-export default VenueOperatingMaster;
+export default CourtOperatingMaster;
