@@ -1,13 +1,12 @@
 import { ObjectId } from "mongoose";
 
-export type EmailTemplateMasterRecord = {
+export type CommonStatusMasterRecord = {
   _id?: ObjectId;
   id: string;
-  templateCode: string;
+  statusCode: string;
   module: string;
-  event: string;
-  subject:string;
-  body: string;
+  statusName: string;
+  sequence:number;
   isActive: boolean;
   isArchived: boolean;
 };

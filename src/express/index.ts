@@ -51,6 +51,7 @@ import { apartmentMasterRouter } from "./routers/apartment-master-router";
 
 import { residentMasterRouter } from "./routers/resident-master-router";
 import { emailTemplateMasterRouter } from "./routers/email-template-master-router";
+import { commonStatusMasterRouter } from "./routers/common-status-master-router";
 import { approvalRoutingMasterRouter } from "./routers/approval-routing-router";
 import { gateMasterRouter } from "./routers/gate-master-router";
 import { guardAccountMappingMasterRouter } from "./routers/guard-account-mapping-master-router";
@@ -71,6 +72,7 @@ import { projectVenueMasterRouter } from "./routers/project-venue-master-router"
 import { venueOperatingMasterRouter } from "./routers/venue-operating-master-router";
 import { menuMasterRouter } from "./routers/menu-master-router";
 import { reservationRuleMasterRouter } from "./routers/reservation-rule-master-router";
+import { restaurantStaffMasterRouter } from "./routers/restaurant-staff-master-router";
 import { courtMasterRouter } from "./routers/court-master-router";
 import { projectCourtMasterRouter } from "./routers/project-court-master-router";
 import { courtOperatingMasterRouter } from "./routers/court-operating-master-router";
@@ -156,6 +158,7 @@ app.use("/apartment-master", apartmentMasterRouter);
 
 app.use("/resident-master", residentMasterRouter);
 app.use("/email-template-master", emailTemplateMasterRouter);
+app.use("/common-status-master", commonStatusMasterRouter);
 app.use("/approval-routing-master", approvalRoutingMasterRouter);
 app.use("/gate-master", gateMasterRouter);
 app.use("/guard-account-mapping-master", guardAccountMappingMasterRouter);
@@ -175,6 +178,7 @@ app.use("/venue-master", venueMasterRouter);
 app.use("/project-venue-master", projectVenueMasterRouter);
 app.use("/venue-operating-master", venueOperatingMasterRouter);
 app.use("/menu-master", menuMasterRouter);
+app.use("/restaurant-staff-master", restaurantStaffMasterRouter);
 app.use("/court-master", courtMasterRouter);
 app.use("/reservation-rule-master", reservationRuleMasterRouter);
 app.use("/project-court-master", projectCourtMasterRouter);
