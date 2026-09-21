@@ -23,6 +23,7 @@ type Input = {
   lastName?: string;
   email?: string;
   phoneNumber?: string;
+  role?:string |null ;
   departmentId?: string | null;
   employeeId?: string | null;
   jobTitle?: string | null;
@@ -77,6 +78,7 @@ export class UpdateUserService {
       "phoneNumber",
       optional(input.phoneNumber, userRecord.phoneNumber)
     );
+    userModel.set("role",input.role);
     userModel.set(
       "departmentId",
       optional(input.departmentId, userRecord.departmentId)

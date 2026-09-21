@@ -14,6 +14,7 @@ export class UserModel extends Model {
       firstName: record.firstName,
       lastName: record.lastName,
       email: record.email,
+      role: record.role,
       phoneNumber: record.phoneNumber,
       departmentId: record.departmentId,
       employeeId: record.employeeId,
@@ -85,6 +86,10 @@ export class UserModel extends Model {
       Validation.make(this.get("project")).optional().array().getRule()
     );
 
+    validationBag.set(
+      "role",
+      Validation.make(this.get("role")).optional().string().getRule()
+    );
     validationBag.set(
       "isCachier",
       Validation.make(this.get("isCachier")).mandatory().boolean().getRule()

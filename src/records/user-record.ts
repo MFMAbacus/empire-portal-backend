@@ -13,6 +13,7 @@ export type UserRecord = {
   firstName: string;
   lastName: string;
   email: string;
+  role:string |null;
   phoneNumber: string | null;
   departmentId: string | null;
   employeeId: string | null;

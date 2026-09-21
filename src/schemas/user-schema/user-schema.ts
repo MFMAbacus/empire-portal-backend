@@ -8,6 +8,7 @@ export interface IUserRecord extends Document {
   firstName: string;
   lastName: string;
   email: string;
+  role:string;
   phoneNumber: string | null;
   departmentId: string | null;
   employeeId: string | null;
@@ -27,6 +28,7 @@ const UserRecordSchema = new Schema<IUserRecord>({
   salespersonId: { type: String, default: null },
   firstName: { type: String, required: true },
   lastName: { type: String, required: true },
+  role: { type: String, default: null},
   email: { type: String, required: true, unique: true },
   phoneNumber: { type: String, default: null },
   departmentId: { type: String, default: null },
