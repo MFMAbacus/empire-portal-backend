@@ -81,6 +81,15 @@ import { facilityApprovalMasterRouter } from "./routers/facility-approval-master
 import { courtBlockingMasterRouter } from "./routers/court-blocking-master-router";
 import { courtBookingMasterRouter } from "./routers/court-booking-master-router";
 import { userMasterRouter } from "./routers/user-master-router";
+
+import { guestApprovalMasterRouter } from "./routers/guest-approval-master-router";
+import { moveApprovalMasterRouter } from "./routers/move-approval-master-router";
+import { cardProcessingMasterRouter } from "./routers/card-processing-master-router";
+import { restaurantReservationApprovalMasterRouter } from "./routers/restaurant-reservation-approval-master-router";
+import { courtApprovalMasterRouter } from "./routers/court-approval-master-router";
+import { requestHistoryMasterRouter } from "./routers/request-history-master-router";
+import { auditLogsMasterRouter } from "./routers/audit-logs-master-router";
+
 import { MigrationRunner } from "@/migrations";
 import { transactionsExcelHandler } from "./handlers/transactions-excel-handler";
 import { customerExcelHandler } from "./handlers/customer-excel-handler";
@@ -189,6 +198,15 @@ app.use("/court-blocking-master", courtBlockingMasterRouter);
 app.use("/court-booking-master", courtBookingMasterRouter);
 app.use("/user-master", userMasterRouter);
 app.use("/properties", propertyMasterRouter);
+
+app.use("/guest-approval-master", guestApprovalMasterRouter);
+app.use("/move-approval-master", moveApprovalMasterRouter);
+app.use("/card-processing-master", cardProcessingMasterRouter);
+app.use("/restaurant-reservation-approval-master", restaurantReservationApprovalMasterRouter);
+app.use("/court-approval-master", courtApprovalMasterRouter);
+app.use("/request-history-master", requestHistoryMasterRouter);
+app.use("/audit-logs-master", auditLogsMasterRouter);
+
 app.use("*", notFoundHandler);
 app.use(errorHandler);
 
