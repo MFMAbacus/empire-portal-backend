@@ -1,5 +1,5 @@
 import { PaymentMethod } from "@/records/payment-record";
-
+import { IVehicleRecord } from "@/schemas/vehicle-schema/vehicle-schema";
 export type RequestItemRecord = {
   itemId: string;
   name: string;
@@ -83,6 +83,10 @@ export type RequestRecord = {
   rate: RequestRateRecord | null;
   isIntangible: boolean;
   pin: string | null;
+  vehicle: IVehicleRecord[] | string[];
+  startTime: string;
+  duration: string;
+  comments: string;
   buyAttachments: string[];
   creationDate: string;
   isArchived: boolean;

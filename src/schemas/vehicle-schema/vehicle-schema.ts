@@ -5,6 +5,7 @@ export interface IVehicleRecord extends Document {
   palletNumber: string;
   type: string;
   color: string;
+  vehicleTypeName: string;
   model: any;
 }
 
@@ -13,6 +14,7 @@ const VehicleSchema = new Schema<IVehicleRecord>({
   palletNumber: { type: String, required: true },
   model: { type: String, required: true },
   type: { type: String, required: true },
+  vehicleTypeName: { type: String, required: true },
   color: { type: String, required: true },
 });
 

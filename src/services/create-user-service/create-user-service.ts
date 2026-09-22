@@ -20,6 +20,7 @@ type Input = {
   firstName: string;
   lastName: string;
   email: string;
+  role:string |null;
   phoneNumber?: string | null;
   departmentId?: string | null;
   employeeId?: string | null;
@@ -47,6 +48,7 @@ export class CreateUserService {
       firstName: input.firstName,
       lastName: input.lastName,
       email: input.email,
+      role: optional(input.role, null),
       phoneNumber: optional(input.phoneNumber, null),
       departmentId: optional(input.departmentId, null),
       employeeId: optional(input.employeeId, null),

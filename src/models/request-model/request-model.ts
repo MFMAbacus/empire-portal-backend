@@ -97,6 +97,22 @@ export class RequestModel extends Model {
       "isIntangible",
       Validation.make(this.get("isIntangible")).mandatory().boolean().getRule()
     );
+    validationBag.set(
+      "vehicle",
+      Validation.make(this.get("vehicle")).optional().array().getRule()
+    );
+    validationBag.set(
+      "startTime",
+      Validation.make(this.get("startTime")).optional().string().getRule()
+    );
+    validationBag.set(
+      "duration",
+      Validation.make(this.get("duration")).optional().string().getRule()
+    );
+    validationBag.set(
+      "comments",
+      Validation.make(this.get("comments")).optional().string().getRule()
+    );
 
     if (!validationBag.hasError("attachments")) {
       // eslint-disable-next-line max-len

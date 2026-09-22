@@ -19,6 +19,7 @@ type Input = {
   palletNumber: string;
   type: string;
   model: string;
+  vehicleTypeName:string;
   color: string;
   sessionRecord: SessionRecord;
 };
@@ -57,6 +58,7 @@ export class CreateVehcile {
       palletNumber: input.palletNumber,
       model: input.model,
       type: input.type,
+      vehicleTypeName: input.vehicleTypeName,
       color: input.color,
     });
 

@@ -18,6 +18,7 @@ type Input = {
   id: string;
   palletNumber?: string;
   type?: string;
+  vehicleTypeName:string;
   model?: string;
   color?: string;
   sessionRecord: SessionRecord;
@@ -75,6 +76,7 @@ export class UpdateVehcile {
     vehicleModel.set("palletNumber", input.palletNumber);
     vehicleModel.set("model", input.model);
     vehicleModel.set("type", input.type);
+    vehicleModel.set("vehicleTypeName", input.vehicleTypeName);
     vehicleModel.set("color", input.color);
     vehicleModel.set("id", input.id);
 

@@ -26,11 +26,11 @@ export class RequestRepositoryDb extends MongoRepository<IRequestRecord> {
       filter.id = { $in: options.ids };
     }
 
-    return await super.getAll(filter, ["items", "payments", "updates"]);
+    return await super.getAll(filter, ["items", "payments", "updates", "vehicle"]);
   }
 
   public async get(id: string): Promise<IRequestRecord | undefined> {
-    return super.get(id, ["items", "payments", "updates"]);
+    return super.get(id, ["items", "payments", "updates", "vehicle"]);
   }
 
   public async exists(id: string): Promise<boolean> {

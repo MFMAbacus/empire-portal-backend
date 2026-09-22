@@ -135,6 +135,7 @@ export class VehicleModel extends Model {
       palletNumber: record.palletNumber,
       model: record.model,
       type: record.type,
+      vehicleTypeName: record.vehicleTypeName,
       color: record.color,
       id: record.id,
     };
@@ -155,6 +156,9 @@ export class VehicleModel extends Model {
     validationBag.set(
       "type",
       Validation.make(this.get("type")).mandatory().string().getRule()
+    );validationBag.set(
+      "vehicleTypeName",
+      Validation.make(this.get("vehicleTypeName")).mandatory().string().getRule()
     );
     validationBag.set(
       "color",

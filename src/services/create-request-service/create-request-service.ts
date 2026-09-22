@@ -11,6 +11,7 @@ import {
   RequestType,
   RequestVisitTime,
 } from "@/records/request-record";
+import { IVehicleRecord } from "@/schemas/vehicle-schema/vehicle-schema";
 import { RequestModel } from "@/models/request-model";
 import { CustomerRepository } from "@/repositories/customer-repository";
 import { RequestRepository } from "@/repositories/request-repository";
@@ -50,6 +51,11 @@ type Input = {
   totalPrice?: number;
   attachments?: string[];
   isIntangible?: boolean;
+  // Nayi fields Input type mein add kar di hain:
+  vehicle?: string[] | IVehicleRecord[];
+  startTime?: string;
+  duration?: string;
+  comments?: string;
 };
 
 export class CreateRequestService {
@@ -113,6 +119,11 @@ export class CreateRequestService {
       isIntangible: optional(input.isIntangible, false),
       pin: null,
       buyAttachments: [],
+      // Syntax fix karke values correctly assign kar di hain:
+      vehicle: optional(input.vehicle, []),
+      startTime: optional(input.startTime, ""),
+      duration: optional(input.duration, ""),
+      comments: optional(input.comments, ""),
       creationDate: DateTime.now().toString(),
       isArchived: false,
     });

@@ -2,6 +2,7 @@ import mongoose, { Schema, Document, Types } from "mongoose";
 import { IRequestItemRecord } from "./request-item-record";
 import { IRequestUpdate } from "./request-update-schema";
 import { IRequestPaymentRecord } from "./request-payment-schema";
+import { IVehicleRecord } from "../vehicle-schema/vehicle-schema";
 
 export type RequestPriority = "low" | "medium" | "hight";
 
@@ -53,6 +54,10 @@ export interface IRequestRecord extends Document {
   payments: IRequestPaymentRecord[];
   rate: IRequestRateRecord | null;
   isIntangible: boolean;
+  vehicle: IVehicleRecord[];
+  startTime: string ;
+  duration: string;
+  comments: string;
   pin: string | null;
   buyAttachments: string[];
   creationDate: string;
@@ -135,10 +140,19 @@ const RequestSchema = new Schema<IRequestRecord>({
     },
     default: null,
   },
+  vehicle: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "Vehicle", 
+      },
+    ],
   isIntangible: { type: Boolean, required: true },
   pin: { type: String, default: null },
   buyAttachments: { type: [String], required: true },
   creationDate: { type: String, required: true },
+  startTime: { type: String, required: true },
+  duration: { type: String, required: true },
+  comments: { type: String, required: true },
   isArchived: { type: Boolean, required: true },
 
   postedToSap: { type: Boolean, default: null },
