@@ -82,7 +82,6 @@ import { courtBlockingMasterRouter } from "./routers/court-blocking-master-route
 import { courtBookingMasterRouter } from "./routers/court-booking-master-router";
 import { userMasterRouter } from "./routers/user-master-router";
 
-import { guestApprovalMasterRouter } from "./routers/guest-approval-master-router";
 import { moveApprovalMasterRouter } from "./routers/move-approval-master-router";
 import { cardProcessingMasterRouter } from "./routers/card-processing-master-router";
 import { restaurantReservationApprovalMasterRouter } from "./routers/restaurant-reservation-approval-master-router";
@@ -93,6 +92,7 @@ import { auditLogsMasterRouter } from "./routers/audit-logs-master-router";
 import { MigrationRunner } from "@/migrations";
 import { transactionsExcelHandler } from "./handlers/transactions-excel-handler";
 import { customerExcelHandler } from "./handlers/customer-excel-handler";
+import { guestApprovalMasterRouter } from "./routers/guest-approval-master-router";
 
 connection();
 
