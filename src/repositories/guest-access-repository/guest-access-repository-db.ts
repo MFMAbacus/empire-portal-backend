@@ -51,15 +51,31 @@ export class GuestAccessRepositoryDb
   public async Update(
     record: Partial<IGuestAccess>
   ): Promise<IGuestAccess | undefined> {
-    const searchId = (record as any)._id || record.id || (record as any).requestNo;
-    if (!searchId) return undefined;
+    const idCandidates = [
+      (record as any)._id,
+      record.id,
+      (record as any).requestNo
+    ].filter(Boolean);
 
-    const filter = this._buildFilter(String(searchId));
+    if (idCandidates.length === 0) return undefined;
+
+    const conditions: any[] = [];
+    for (const cand of idCandidates) {
+      const str = String(cand);
+      conditions.push({ id: str });
+      conditions.push({ requestNo: str });
+      if (mongoose.Types.ObjectId.isValid(str) && str.length === 24) {
+        conditions.push({ _id: new mongoose.Types.ObjectId(str) });
+      }
+    }
+
+    const filter = { $or: conditions };
 
     // Only include actual schema fields — strip any extra enrichment fields
     const allowed = [
       "status", "approvalStatus", "assignedGateId", "rejectionReason",
-      "approverId", "qrCode", "qrStatus", "checkInDateTime",
+      "approverId", "qrCode", "qrStatus", "qrExpiryDate", "expiryHours",
+      "isOneTimeScan", "isGateValidation", "isPdfRequired", "checkInDateTime",
       "vehiclePlateNo", "vehicleType", "visitDate", "startTime",
       "duration", "comments", "active", "requestNo", "residentId",
       "apartmentId", "projectCode",
@@ -89,14 +105,17 @@ export class GuestAccessRepositoryDb
   }
 
   /**
-   * Build a robust MongoDB filter:
-   * - If id is a 24-char hex (valid ObjectId) → match by _id directly
-   * - Otherwise → match by custom `id` field or `requestNo`
+   * Build a robust MongoDB filter matching _id, custom `id`, or `requestNo`
    */
   private _buildFilter(id: string): any {
+    if (!id) return {};
+    const conditions: any[] = [
+      { id: id },
+      { requestNo: id }
+    ];
     if (mongoose.Types.ObjectId.isValid(id) && id.length === 24) {
-      return { _id: new mongoose.Types.ObjectId(id) };
+      conditions.push({ _id: new mongoose.Types.ObjectId(id) });
     }
-    return { $or: [{ id }, { requestNo: id }] };
+    return { $or: conditions };
   }
 }

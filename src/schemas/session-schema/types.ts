@@ -45,6 +45,11 @@ export interface UserPermissions {
       meetingInvite?: BasePermission;
     };
   };
+  masterForms?: ModuleWithSubSections & {
+    subSections?: {
+      [key: string]: BasePermission | undefined;
+    };
+  };
 
   customers?: ModuleWithActions & {
     actions?: {
@@ -79,7 +84,7 @@ export class PermissionChecker {
   }
 
   canReadSubSection(
-    module: "activities" | "meeting",
+    module: "activities" | "meeting" | "masterForms",
     subSection: string
   ): boolean {
     const modulePerms = this.permissions[module] as ModuleWithSubSections;
@@ -87,7 +92,7 @@ export class PermissionChecker {
   }
 
   canWriteSubSection(
-    module: "activities" | "meeting",
+    module: "activities" | "meeting" | "masterForms",
     subSection: string
   ): boolean {
     const modulePerms = this.permissions[module] as ModuleWithSubSections;

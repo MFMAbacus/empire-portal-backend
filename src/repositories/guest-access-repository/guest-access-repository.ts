@@ -3,6 +3,7 @@ import { IGuestAccess } from "@/schemas/guest-access-schema";
 export type GetAllGuestAccessOptions = {
   isArchived?: boolean;
   residentId?: string;
+  projectCode?: string;
 };
 
 export interface GuestAccessRepository {

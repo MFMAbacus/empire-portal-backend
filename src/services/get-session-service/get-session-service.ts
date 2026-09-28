@@ -2,6 +2,7 @@ import { Result } from "@/utility/result";
 import { Failure } from "@/utility/failure";
 import { Attribute } from "@/utility/attribute";
 import { Validation } from "@/utility/validation";
+import { PermissionHelper } from "@/utility/permission-helper";
 
 import { ISessionRecord } from "@/schemas/session-schema";
 import { SessionRepository } from "@/repositories/session-repository";
@@ -47,7 +48,7 @@ export class GetSessionService {
     }
 
     if (userRecord?.permissions) {
-      sessionRecord.permissions = userRecord.permissions;
+      sessionRecord.permissions = PermissionHelper.migrateOldPermissions(userRecord.permissions);
     }
 
     return Result.ok(sessionRecord);

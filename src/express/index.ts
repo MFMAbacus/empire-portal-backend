@@ -199,7 +199,7 @@ app.use("/court-booking-master", courtBookingMasterRouter);
 app.use("/user-master", userMasterRouter);
 app.use("/properties", propertyMasterRouter);
 
-app.use("/guest-approval-master", guestApprovalMasterRouter);
+app.use("/guest-approval-request", guestApprovalMasterRouter);
 app.use("/move-approval-master", moveApprovalMasterRouter);
 app.use("/card-processing-master", cardProcessingMasterRouter);
 app.use("/restaurant-reservation-approval-master", restaurantReservationApprovalMasterRouter);

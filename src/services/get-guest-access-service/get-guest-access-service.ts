@@ -141,7 +141,17 @@ export class GetGuestAccessService {
           projectName: project?.projectName ?? r.projectCode,
           vehicleTypeName: vehicleTypeObj?.vehicleType ?? r.vehicleType,
           assignedGateName: gate?.gateName ?? r.assignedGateId ?? null,
-          // Approval & Gate context
+          // QR Configuration & Validity details for mobile app
+          qrConfiguration: {
+            expiryHours: r.expiryHours ?? 24,
+            isOneTimeScan: r.isOneTimeScan ?? true,
+            isGateValidation: r.isGateValidation ?? true,
+            isPdfRequired: r.isPdfRequired ?? false,
+            qrExpiryDate: r.qrExpiryDate ?? null,
+            isExpired: r.qrExpiryDate ? new Date() > new Date(r.qrExpiryDate) : false,
+          },
+          isExpired: r.qrExpiryDate ? new Date() > new Date(r.qrExpiryDate) : false,
+          // pdfPassUrl: r.isPdfRequired ? `/guest-approval-master/pdf/${r.id || r.requestNo}` : null,
           availableGates: projectGates,
           approvalRouting,
           securityCoordinators,

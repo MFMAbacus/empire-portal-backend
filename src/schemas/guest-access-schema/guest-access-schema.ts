@@ -19,6 +19,11 @@ export interface IGuestAccess extends Document {
   assignedGateId?: string;
   qrCode?: string;
   qrStatus?: string;
+  qrExpiryDate?: Date;
+  expiryHours?: number;
+  isOneTimeScan?: boolean;
+  isGateValidation?: boolean;
+  isPdfRequired?: boolean;
   checkInDateTime?: Date;
   active: boolean;
 }
@@ -43,6 +48,11 @@ const GuestAccessSchema = new Schema(
     assignedGateId: { type: String, required: false },
     qrCode: { type: String, required: false },
     qrStatus: { type: String, required: false },
+    qrExpiryDate: { type: Date, required: false },
+    expiryHours: { type: Number, required: false },
+    isOneTimeScan: { type: Boolean, required: false },
+    isGateValidation: { type: Boolean, required: false },
+    isPdfRequired: { type: Boolean, required: false },
     checkInDateTime: { type: Date, required: false },
     active: { type: Boolean, default: true },
   },
