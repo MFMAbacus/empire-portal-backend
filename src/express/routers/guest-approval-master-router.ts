@@ -512,6 +512,7 @@ guestApprovalMasterRouter.get("/", async (request, response, next) => {
     const result = await getGuestAccessService.execute({
       isArchived: request.query?.isArchived === "1",
       residentId: request.query?.residentId as string | undefined,
+      userId: request.query?.userId as string | undefined, // <--- Logged-in user ki ID yahan lein
     });
     return presentResult(result, response);
   } catch (error: unknown) {

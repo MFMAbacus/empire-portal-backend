@@ -89,7 +89,7 @@ export class GetGuestAccessService {
       });
 
       // Enrich each record
-      const enriched = records.map((record: any) => {
+      let enriched = records.map((record: any) => {
         const r = record.toObject ? record.toObject() : record;
 
         // Resolve resident, apartment, project, vehicle type, gate
@@ -118,7 +118,7 @@ export class GetGuestAccessService {
         // Get security coordinator(s) for this project
         const securityCoordinators = allSecurityCoordinators
           .filter((sc: any) => sc.projectCode === r.projectCode)
-          .map((sc: any) => ({ role: sc.coordinatorRole, projectCode: sc.projectCode }));
+          .map((sc: any) => ({ role: sc.coordinatorRole || sc.role, projectCode: sc.projectCode }));
 
         // Get status sequence for Guest Access (from Common Status Master)
         const approvalStatusOptions = allStatuses.map((s: any) => ({
@@ -158,6 +158,27 @@ export class GetGuestAccessService {
           approvalStatusOptions,
         };
       });
+
+      // Filter records based on logged-in user if userId is provided
+      if (input?.userId) {
+        const matchedCoordinators = allSecurityCoordinators.filter(
+          (sc: any) =>
+            sc.userId === input.userId ||
+            sc.id === input.userId ||
+            sc._id?.toString() === input.userId ||
+            sc.coordinatorId === input.userId ||
+            sc.coordinatorRole === input.userId ||
+            sc.role === input.userId
+        );
+
+        if (matchedCoordinators.length > 0) {
+          const allowedProjectCodes = matchedCoordinators.map((sc: any) => sc.projectCode);
+          enriched = enriched.filter((item: any) => allowedProjectCodes.includes(item.projectCode));
+        } else {
+          // If the user is not a valid security coordinator, return an empty list
+          enriched = [];
+        }
+      }
 
       return Result.ok(enriched);
     } catch (error) {
