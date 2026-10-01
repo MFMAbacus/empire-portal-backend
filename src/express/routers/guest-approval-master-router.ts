@@ -355,8 +355,8 @@ async function processQrScan(qrCodeInput: string, gateId?: string, gateName?: st
   }
 
   // 5. SUCCESSFUL SCAN (Verified Check-In)
-  record.status = "Checked-in";
-  record.approvalStatus = "Checked-in";
+  record.status = "Used";
+  record.approvalStatus = "Used";
   if (record.isOneTimeScan) {
     record.qrStatus = "Used";
   }
@@ -634,14 +634,14 @@ guestApprovalMasterRouter.patch("/:id/reject", async (request, response, next) =
   }
 });
 
-// PATCH /:id/checkin — Guard scans QR to check in visitor
-guestApprovalMasterRouter.patch("/:id/checkin", async (request, response, next) => {
+// PATCH /:id/used — Guard scans QR to check in visitor
+guestApprovalMasterRouter.patch("/:id/used", async (request, response, next) => {
   try {
     const id = request.params.id;
     const result = await updateGuestAccessService.execute({
       id,
-      status: "Checked-in",
-      approvalStatus: "Checked-in",
+      status: "Used",
+      approvalStatus: "Used",
       qrStatus: "Used",
       checkInDateTime: new Date(),
     });
