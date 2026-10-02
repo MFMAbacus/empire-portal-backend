@@ -202,7 +202,7 @@ app.use("/properties", propertyMasterRouter);
 app.use("/guest-approval-request", guestApprovalMasterRouter);
 app.use("/move-approval-request", moveApprovalMasterRouter);
 app.use("/card-processing-master", cardProcessingMasterRouter);
-app.use("/restaurant-reservation-approval-master", restaurantReservationApprovalMasterRouter);
+app.use("/restaurant-reservation-approval-request", restaurantReservationApprovalMasterRouter);
 app.use("/court-approval-master", courtApprovalMasterRouter);
 app.use("/request-history-master", requestHistoryMasterRouter);
 app.use("/audit-logs-master", auditLogsMasterRouter);
