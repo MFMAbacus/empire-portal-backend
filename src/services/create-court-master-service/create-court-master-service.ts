@@ -44,11 +44,11 @@ export class CreateCourtMasterService {
       }
     }
 
-    // CREATE LOGIC (Jab Naya Record banega tab DB ki primary key 'AM' prefix se generate hogi)
-    const primaryKeyId = input.id || Generator.id("AM");
+    // CREATE LOGIC (Jab Naya Record banega tab DB ki primary key 'CM' prefix se generate hogi)
+    const primaryKeyId = input.id || Generator.id("CM");
 
     const courtModel = CourtMasterModel.make({
-      id: primaryKeyId,              // Database Primary Key -> AM-12345
+      id: primaryKeyId,              // Database Primary Key -> CM-12345
       courtId: input.courtId, // User Input -> APT-101
       projectCode: input.projectCode,
       courtName: input.courtName,
