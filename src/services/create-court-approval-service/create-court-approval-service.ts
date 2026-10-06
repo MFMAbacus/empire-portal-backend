@@ -246,7 +246,8 @@ export class CreateCourtApprovalService {
       }).lean();
 
       const createdRecord = await courtApprovalRepository.create(payload as ICourtApproval);
-      return Result.ok(createdRecord);
+      const cleanData = createdRecord.toObject ? createdRecord.toObject() : createdRecord;
+      return Result.ok(cleanData);
     } catch (error) {
       console.error("Error creating court reservation:", error);
       return Result.fail(Failure.badRequest("Failed to create court reservation"));
