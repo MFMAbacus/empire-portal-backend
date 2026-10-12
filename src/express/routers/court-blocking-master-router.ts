@@ -9,6 +9,7 @@ import { createCourtBlockingMasterService } from "@/services/create-court-blocki
 import { updateCourtBlockingMasterService } from "@/services/update-court-blocking-master-service";
 
 import { deleteCourtBlockingMasterService } from "@/services/delete-court-blocking-master-service";
+import CourtBlockingMaster from "@/schemas/court-blocking-master-schema";
 
 export const courtBlockingMasterRouter = express.Router();
 
@@ -22,6 +23,20 @@ courtBlockingMasterRouter.get("/", async (request, response, next) => {
   }
 });
 
+// MOBILE API
+courtBlockingMasterRouter.get("/mobile/court-blocking", async (request, response, next) => {
+  try {
+    const input = combineRequestInput(request);
+    const result = await CourtBlockingMaster.find({ isActive: true, isArchived: false })
+    .select(
+    "id blockId blockDate startTime endTime courtId reason createdBy ",
+    )
+    .lean();
+    return response.json({ success: true, data: result });
+    } catch (error: unknown) {
+      next(error);
+    }
+});
 courtBlockingMasterRouter.get("/:id", async (request, response, next) => {
   try {
     const input = combineRequestInput(request);

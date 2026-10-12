@@ -9,6 +9,7 @@ import { createAccessCardMasterService } from "@/services/create-access-card-mas
 import { updateAccessCardMasterService } from "@/services/update-access-card-master-service";
 
 import { deleteAccessCardMasterService } from "@/services/delete-access-card-master-service";
+import AccessCardMaster from "@/schemas/access-card-master-schema";
 
 export const accessCardMasterRouter = express.Router();
 
@@ -17,6 +18,21 @@ accessCardMasterRouter.get("/", async (request, response, next) => {
     const input = combineRequestInput(request);
     const result = await getAccessCardMasterService.execute(input);
     return presentResult(result, response);
+  } catch (error: unknown) {
+    next(error);
+  }
+});
+
+// MOBILE API
+accessCardMasterRouter.get("/mobile/access-card/:residentId", async (request, response, next) => {
+  try {
+    const { residentId } = request.params; 
+
+    const result = await AccessCardMaster.find({ residentId: residentId,isActive: true, isArchived: false })
+    .select("id cardId serialNo maskedSerial issueDate cardStatus projectCode apartmentId residentId")
+    .lean();
+
+    return response.status(200).json({ success: true, data: result });
   } catch (error: unknown) {
     next(error);
   }

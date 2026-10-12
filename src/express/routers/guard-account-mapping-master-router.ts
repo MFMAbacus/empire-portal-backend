@@ -9,6 +9,7 @@ import { createGuardAccountMappingMasterService } from "@/services/create-guard-
 import { updateGuardAccountMappingMasterService } from "@/services/update-guard-account-mapping-master-service";
 
 import { deleteGuardAccountMappingMasterService } from "@/services/delete-guard-account-mapping-master-service";
+import GuardAccountMappingMaster from "@/schemas/guard-account-mapping-master-schema";
 
 export const guardAccountMappingMasterRouter = express.Router();
 
@@ -17,6 +18,19 @@ guardAccountMappingMasterRouter.get("/", async (request, response, next) => {
     const input = combineRequestInput(request);
     const result = await getGuardAccountMappingMasterService.execute(input);
     return presentResult(result, response);
+  } catch (error: unknown) {
+    next(error);
+  }
+});
+
+// MOBILE API
+guardAccountMappingMasterRouter.get("/mobile/guard-account", async (request, response, next) => {
+  try {
+    const input = combineRequestInput(request);
+    const result = await GuardAccountMappingMaster.find({ isActive: true, isArchived: false })
+    .select("id guardAccountId guardUserId deviceId gateId projectCode ")
+    .lean();
+    return response.json({ success: true, data: result });
   } catch (error: unknown) {
     next(error);
   }

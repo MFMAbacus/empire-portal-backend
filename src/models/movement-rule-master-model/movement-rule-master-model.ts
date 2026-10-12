@@ -12,7 +12,7 @@ export class MovementRuleMasterModel extends Model {
       projectCode: record.projectCode,
       startTime: record.startTime,
       endTime: record.endTime,
-      blockedDays: record.blockedDays,
+      blockedDays: Array.isArray(record.blockedDays) ? record.blockedDays : [],
       isActive: record.isActive ?? true,
       isArchived: record.isArchived ?? false,
     };

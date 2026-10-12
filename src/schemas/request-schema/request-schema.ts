@@ -150,9 +150,9 @@ const RequestSchema = new Schema<IRequestRecord>({
   pin: { type: String, default: null },
   buyAttachments: { type: [String], required: true },
   creationDate: { type: String, required: true },
-  startTime: { type: String, required: true },
-  duration: { type: String, required: true },
-  comments: { type: String, required: true },
+  startTime: { type: String, required: false },
+  duration: { type: String, required: false },
+  comments: { type: String, required: false },
   isArchived: { type: Boolean, required: true },
 
   postedToSap: { type: Boolean, default: null },

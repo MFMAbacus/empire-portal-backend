@@ -9,6 +9,7 @@ import { createCardReplacementReasonMasterService } from "@/services/create-card
 import { updateCardReplacementReasonMasterService } from "@/services/update-card-replacement-reason-master-service";
 
 import { deleteCardReplacementReasonMasterService } from "@/services/delete-card-replacement-reason-master-service";
+import CardReplacementReasonMaster from "@/schemas/card-replacement-reason-master-schema";
 
 export const cardReplacementReasonMasterRouter = express.Router();
 
@@ -20,6 +21,19 @@ cardReplacementReasonMasterRouter.get("/", async (request, response, next) => {
   } catch (error: unknown) {
     next(error);
   }
+});
+
+// MOBILE API
+cardReplacementReasonMasterRouter.get("/mobile/card-replacement", async (request, response, next) => {
+  try {
+    const input = combineRequestInput(request);
+    const result = await CardReplacementReasonMaster.find({ isActive: true, isArchived: false })
+    .select("id reasonId reasonName chargesApplicable ")
+    .lean();
+    return response.json({ success: true, data: result });
+    } catch (error: unknown) {
+      next(error);
+    }
 });
 
 cardReplacementReasonMasterRouter.get("/:id", async (request, response, next) => {

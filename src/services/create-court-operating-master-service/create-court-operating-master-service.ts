@@ -11,7 +11,7 @@ type Props = {
 type Input = {
   id?: string;  
   courtId: string;
-  day: string;
+  day: string[];
   openTime: string;
   closeTime: string;
   isClosed?: boolean;
@@ -27,13 +27,13 @@ export class CreateCourtOperatingMasterService {
 
   public async execute(input: Input): Promise<Result<string, Failure>> {
     const isActive = typeof input.isActive !== "undefined" ? Boolean(input.isActive) : true;
-    const isClosed = typeof input.isClosed !== "undefined" ? Boolean(input.isClosed) : true;
+    const isClosed = typeof input.isClosed !== "undefined" ? Boolean(input.isClosed) : false;
     // UPDATE LOGIC (Jab Primary Key 'input.id' pass ki gayi ho)
     if (input.id) {
       const existing = await this._courtOperatingMasterRepository.get(input.id);
       if (existing) {
         existing.courtId = input.courtId || existing.courtId;
-        existing.day = input.day || existing.day;
+        existing.day = typeof input.day !== "undefined" ? input.day : existing.day;
         existing.openTime = input.openTime || existing.openTime;
         existing.closeTime = input.closeTime || existing.closeTime;
         existing.isActive = isActive;
@@ -44,14 +44,14 @@ export class CreateCourtOperatingMasterService {
       }
     }
 
-    // CREATE LOGIC (Naya record banne par Primary Key 'RM' prefix se generate hogi)
+    // CREATE LOGIC (Naya record banne par Primary Key 'COH' prefix se generate hogi)
     const primaryKeyId = input.id || Generator.id("COH");
 
 
     const courtOperatingModel = CourtOperatingMasterModel.make({
       id: primaryKeyId,
       courtId: input.courtId,
-      day: input.day,
+      day: input.day || [],
       openTime: input.openTime,
       closeTime: input.closeTime,
       isClosed: isClosed,

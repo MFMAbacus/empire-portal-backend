@@ -9,6 +9,7 @@ import { createGateMasterService } from "@/services/create-gate-master-service";
 import { updateGateMasterService } from "@/services/update-gate-master-service";
 
 import { deleteGateMasterService } from "@/services/delete-gate-master-service";
+import GateMaster from "@/schemas/gate-master-schema";
 
 export const gateMasterRouter = express.Router();
 
@@ -17,6 +18,19 @@ gateMasterRouter.get("/", async (request, response, next) => {
     const input = combineRequestInput(request);
     const result = await getGateMasterService.execute(input);
     return presentResult(result, response);
+  } catch (error: unknown) {
+    next(error);
+  }
+});
+
+// MOBILE API
+gateMasterRouter.get("/mobile/gate-master", async (request, response, next) => {
+  try {
+    const input = combineRequestInput(request);
+    const result = await GateMaster.find({ isActive: true, isArchived: false })
+    .select("id gateId gateName location projectCode ")
+    .lean();
+    return response.json({ success: true, data: result });
   } catch (error: unknown) {
     next(error);
   }

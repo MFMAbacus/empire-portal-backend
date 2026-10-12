@@ -14,7 +14,7 @@ type Input = {
   projectCode: string;
   startTime: string;
   endTime: string;
-  blockedDays?: string;
+  blockedDays?: string[];
   isActive?: boolean;
 };
 
@@ -60,7 +60,7 @@ export class CreateMovementRuleMasterService {
       projectCode: input.projectCode,
       startTime: input.startTime,
       endTime: input.endTime,
-      blockedDays: input.blockedDays || "",
+      blockedDays: input.blockedDays || [],
       isActive: isActive,
       isArchived: false,
     });

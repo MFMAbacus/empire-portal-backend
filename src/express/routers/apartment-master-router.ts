@@ -9,6 +9,7 @@ import { createApartmentMasterService } from "@/services/create-apartment-master
 import { updateApartmentMasterService } from "@/services/update-apartment-master-service";
 
 import { deleteApartmentMasterService } from "@/services/delete-apartment-master-service";
+import ApartmentMaster from "@/schemas/apartment-master-schema";
 
 export const apartmentMasterRouter = express.Router();
 
@@ -17,6 +18,19 @@ apartmentMasterRouter.get("/", async (request, response, next) => {
     const input = combineRequestInput(request);
     const result = await getApartmentMasterService.execute(input);
     return presentResult(result, response);
+  } catch (error: unknown) {
+    next(error);
+  }
+});
+
+// MOBILE API
+apartmentMasterRouter.get("/mobile/apartment-master", async (request, response, next) => {
+  try {
+    const input = combineRequestInput(request);
+    const result = await ApartmentMaster.find({ isActive: true, isArchived: false })
+    .select("id apartmentId apartmentNo buildingOrTower floor projectCode")
+    .lean();
+    return response.json({ success: true, data: result });
   } catch (error: unknown) {
     next(error);
   }

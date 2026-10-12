@@ -9,7 +9,7 @@ export class VenueOperatingMasterModel extends Model {
       _id: record._id,
       id: record.id,
       venueId: record.venueId,
-      day: record.day,
+      day: Array.isArray(record.day) ? record.day : record.day ? [record.day] : [],
       openTime:record.openTime,
       closeTime:record.closeTime,
       isClosed: record.isClosed ?? false,
@@ -28,10 +28,13 @@ export class VenueOperatingMasterModel extends Model {
       "venueId",
       Validation.make(this.get("venueId")).mandatory().string().getRule()
     );
-    validationBag.set(
-      "day",
-      Validation.make(this.get("day")).mandatory().string().getRule()
-    );
+        const days = this.get("day");
+    if (!Array.isArray(days) || days.length === 0) {
+      validationBag.set(
+        "day",
+        Validation.make(days).mandatory().getRule()
+      );
+    }
     validationBag.set(
       "openTime",
       Validation.make(this.get("openTime")).mandatory().string().getRule()

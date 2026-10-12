@@ -11,6 +11,7 @@ import { deleteVehicleTypeMasterService } from "@/services/delete-vehicle-type-m
 
 // Vehicle Type Schema direct import for mobile endpoint
 import VehicleTypeMaster from "@/schemas/vehicle-type-master-schema/vehicle-type-master-schema";
+import { Vehicle } from "@/schemas/vehicle-schema/vehicle-schema";
 
 export const vehicleTypeMasterRouter = express.Router();
 
@@ -25,31 +26,17 @@ vehicleTypeMasterRouter.get("/", async (request, response, next) => {
   }
 });
 
-// 📱 MOBILE-SPECIFIC ENDPOINT (Must be defined BEFORE /:id route)
-vehicleTypeMasterRouter.get("/mobile/vehicle-types", async (req, res, next) => {
+// MOBILE API
+vehicleTypeMasterRouter.get("/mobile/vehicle-types", async (request, response, next) => {
   try {
-    const vehicleTypes = await VehicleTypeMaster.find({
-      isArchived: false,
-    }).lean();
-
-    const formattedData = vehicleTypes.map((item: any) => ({
-      vehicleTypeId: item.id || item.vehicleTypeId || item._id,
-      vehicleType: item.vehicleType,
-      isActive: item.isActive ?? true,
-    }));
-
-    return res.status(200).json({
-      success: true,
-      code: "success",
-      data: formattedData,
-    });
-  } catch (error: unknown) {
-    return res.status(500).json({
-      success: false,
-      code: "error",
-      message: "Failed to fetch vehicle types for mobile app",
-    });
-  }
+      const input = combineRequestInput(request);
+      const result = await VehicleTypeMaster.find({ isActive: true, isArchived: false })
+      .select("id vehicleTypeId vehicleType ")
+      .lean();
+      return response.json({ success: true, data: result });
+    } catch (error: unknown) {
+      next(error);
+    }
 });
 
 // GET SINGLE BY ID (Web Portal)

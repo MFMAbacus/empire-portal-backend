@@ -9,6 +9,7 @@ import { createMovementRuleMasterService } from "@/services/create-movement-rule
 import { updateMovementRuleMasterService } from "@/services/update-movement-rule-master-service";
 
 import { deleteMovementRuleMasterService } from "@/services/delete-movement-rule-master-service";
+import MovementRuleMaster from "@/schemas/movement-rule-master-schema";
 
 export const movementRuleMasterRouter = express.Router();
 
@@ -20,6 +21,19 @@ movementRuleMasterRouter.get("/", async (request, response, next) => {
   } catch (error: unknown) {
     next(error);
   }
+});
+
+// MOBILE API
+movementRuleMasterRouter.get("/mobile/movement-rule", async (request, response, next) => {
+  try {
+      const input = combineRequestInput(request);
+      const result = await MovementRuleMaster.find({ isActive: true, isArchived: false })
+      .select("id ruleId projectCode startTime endTime blockedDays ")
+      .lean();
+      return response.json({ success: true, data: result });
+    } catch (error: unknown) {
+      next(error);
+    }
 });
 
 movementRuleMasterRouter.get("/:id", async (request, response, next) => {

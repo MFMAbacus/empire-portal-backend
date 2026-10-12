@@ -82,7 +82,7 @@ export class CreateRequestService {
     const requestModel = RequestModel.make({
       id: Generator.id(requestTypeIdPrefix[input.type]),
       type: input.type,
-      categoryId: input.categoryId,
+      categoryId: input.categoryId != null && String(input.categoryId).trim() !== "" ? String(input.categoryId) : input.categoryId,
       categoryName: input.categoryName,
       project: optional(input.project, null),
       subCategoryName: optional(input.subCategoryName, null),

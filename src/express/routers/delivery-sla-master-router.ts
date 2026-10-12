@@ -9,6 +9,7 @@ import { createDeliverySLAMasterService } from "@/services/create-delivery-sla-m
 import { updateDeliverySLAMasterService } from "@/services/update-delivery-sla-master-service";
 
 import { deleteDeliverySLAMasterService } from "@/services/delete-delivery-sla-master-service";
+import DeliverySLAMaster from "@/schemas/delivery-sla-master-schema";
 
 export const deliverySLAMasterRouter = express.Router();
 
@@ -21,6 +22,25 @@ deliverySLAMasterRouter.get("/", async (request, response, next) => {
     next(error);
   }
 });
+
+// MOBILE API
+deliverySLAMasterRouter.get(
+  "/mobile/delivery-master",
+  async (request, response, next) => {
+    try {
+      const input = combineRequestInput(request);
+      const result = await DeliverySLAMaster.find({
+        isActive: true,
+        isArchived: false,
+      })
+        .select("id deliveryPeriodHours projectCode")
+        .lean();
+      return response.json({ success: true, data: result });
+    } catch (error: unknown) {
+      next(error);
+    }
+  },
+);
 
 deliverySLAMasterRouter.get("/:id", async (request, response, next) => {
   try {

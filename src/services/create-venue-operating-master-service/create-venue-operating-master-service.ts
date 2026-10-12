@@ -11,7 +11,7 @@ type Props = {
 type Input = {
   id?: string;  
   venueId: string;
-  day: string;
+  day: string[];
   openTime: string;
   closeTime: string;
   isClosed?: boolean;
@@ -27,13 +27,14 @@ export class CreateVenueOperatingMasterService {
 
   public async execute(input: Input): Promise<Result<string, Failure>> {
     const isActive = typeof input.isActive !== "undefined" ? Boolean(input.isActive) : true;
-    const isClosed = typeof input.isClosed !== "undefined" ? Boolean(input.isClosed) : true;
+    const isClosed = typeof input.isClosed !== "undefined" ? Boolean(input.isClosed) : false; // Default false theek rahe ga
+
     // UPDATE LOGIC (Jab Primary Key 'input.id' pass ki gayi ho)
     if (input.id) {
       const existing = await this._venueOperatingMasterRepository.get(input.id);
       if (existing) {
         existing.venueId = input.venueId || existing.venueId;
-        existing.day = input.day || existing.day;
+        existing.day = typeof input.day !== "undefined" ? input.day : existing.day;
         existing.openTime = input.openTime || existing.openTime;
         existing.closeTime = input.closeTime || existing.closeTime;
         existing.isActive = isActive;
@@ -44,14 +45,14 @@ export class CreateVenueOperatingMasterService {
       }
     }
 
-    // CREATE LOGIC (Naya record banne par Primary Key 'RM' prefix se generate hogi)
+    // CREATE LOGIC (Naya record banne par Primary Key 'PV' prefix se generate hogi)
     const primaryKeyId = input.id || Generator.id("PV");
 
 
     const venueOperatingModel = VenueOperatingMasterModel.make({
       id: primaryKeyId,
       venueId: input.venueId,
-      day: input.day,
+      day: input.day || [],
       openTime: input.openTime,
       closeTime: input.closeTime,
       isClosed: isClosed,

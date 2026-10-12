@@ -52,9 +52,9 @@ async function validateMovementRule(
     const fallbackEnd = "16:00";
     const allowedStart = (rule as any)?.startTime ?? fallbackStart;
     const allowedEnd = (rule as any)?.endTime ?? fallbackEnd;
-    const blockedDaysRaw = (rule as any)?.blockedDays ?? "Friday";
-    const blockedDays: string[] = blockedDaysRaw
-      ? blockedDaysRaw.split(",").map((d: string) => d.trim().toLowerCase())
+    const blockedDaysRaw = (rule as any)?.blockedDays;
+    const blockedDays: string[] = Array.isArray(blockedDaysRaw)
+      ? blockedDaysRaw.map((d: string) => d.toLowerCase().trim())
       : ["friday"];
 
     // Check day of week

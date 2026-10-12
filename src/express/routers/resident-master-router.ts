@@ -9,6 +9,7 @@ import { createResidentMasterService } from "@/services/create-resident-master-s
 import { updateResidentMasterService } from "@/services/update-resident-master-service";
 
 import { deleteResidentMasterService } from "@/services/delete-resident-master-service";
+import ResidentMaster from "@/schemas/resident-master-schema";
 
 export const residentMasterRouter = express.Router();
 
@@ -17,6 +18,20 @@ residentMasterRouter.get("/", async (request, response, next) => {
     const input = combineRequestInput(request);
     const result = await getResidentMasterService.execute(input);
     return presentResult(result, response);
+  } catch (error: unknown) {
+    next(error);
+  }
+});
+
+
+// MOBILE API
+residentMasterRouter.get("/mobile/resident-master", async (request, response, next) => {
+  try {
+    const input = combineRequestInput(request);
+    const result = await ResidentMaster.find({ isActive: true, isArchived: false })
+    .select("id residentId name email mobileNo loginUserId residentType apartmentId projectCode")
+    .lean();
+    return response.json({ success: true, data: result });
   } catch (error: unknown) {
     next(error);
   }

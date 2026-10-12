@@ -30,7 +30,7 @@ export class CourtOperatingMasterModel extends Model {
     );
     validationBag.set(
       "day",
-      Validation.make(this.get("day")).mandatory().string().getRule()
+      Validation.make(this.get("day")).mandatory().array().getRule()
     );
     validationBag.set(
       "openTime",

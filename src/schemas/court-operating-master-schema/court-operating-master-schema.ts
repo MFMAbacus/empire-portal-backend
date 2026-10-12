@@ -3,7 +3,7 @@ import mongoose, { Schema, Document } from "mongoose";
 export interface ICourtOperatingMaster extends Document {
   id: string;
   courtId: string;
-  day: string;
+  day: string[];
   openTime: string;
   closeTime: string;
   isClosed: boolean;
@@ -15,7 +15,7 @@ const CourtOperatingMasterSchema: Schema = new Schema(
   {
     id: { type: String, required: true, unique: true },
     courtId: { type: String, required: true },
-    day: { type: String, required: true },
+    day: { type: [String], required: true, default: [] },
     openTime: { type: String, required: true },
     closeTime: { type: String, required: true },
     isClosed: { type: Boolean, default: false },

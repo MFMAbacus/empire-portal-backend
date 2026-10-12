@@ -13,7 +13,7 @@ type Input = {
   projectCode?: string;
   startTime?: string;
   endTime?: string;
-  blockedDays?: string;
+  blockedDays?: string[];
   isActive?: boolean;
 };
 

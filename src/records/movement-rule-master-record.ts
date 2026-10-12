@@ -7,7 +7,7 @@ export type MovementRuleMasterRecord = {
   projectCode: string;
   startTime: string;
   endTime: string;
-  blockedDays?: string;
+  blockedDays?: string[];
   isActive: boolean;
   isArchived: boolean;
 };

@@ -9,6 +9,7 @@ import { createItemTypeMasterService } from "@/services/create-item-type-master-
 import { updateItemTypeMasterService } from "@/services/update-item-type-master-service";
 
 import { deleteItemTypeMasterService } from "@/services/delete-item-type-master-service";
+import ItemTypeMaster from "@/schemas/item-type-master-schema";
 
 export const itemTypeMasterRouter = express.Router();
 
@@ -21,6 +22,20 @@ itemTypeMasterRouter.get("/", async (request, response, next) => {
     next(error);
   }
 });
+
+// MOBILE API
+itemTypeMasterRouter.get("/mobile/item-type", async (request, response, next) => {
+  try {
+      const input = combineRequestInput(request);
+      const result = await ItemTypeMaster.find({ isActive: true, isArchived: false })
+      .select("id itemTypeId itemTypeName description ")
+      .lean();
+      return response.json({ success: true, data: result });
+    } catch (error: unknown) {
+      next(error);
+    }
+});
+
 
 itemTypeMasterRouter.get("/:id", async (request, response, next) => {
   try {

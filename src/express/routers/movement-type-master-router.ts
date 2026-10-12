@@ -9,6 +9,7 @@ import { createMovementTypeMasterService } from "@/services/create-movement-type
 import { updateMovementTypeMasterService } from "@/services/update-movement-type-master-service";
 
 import { deleteMovementTypeMasterService } from "@/services/delete-movement-type-master-service";
+import MovementTypeMaster from "@/schemas/movement-type-master-schema";
 
 export const movementTypeMasterRouter = express.Router();
 
@@ -20,6 +21,19 @@ movementTypeMasterRouter.get("/", async (request, response, next) => {
   } catch (error: unknown) {
     next(error);
   }
+});
+
+// MOBILE API
+movementTypeMasterRouter.get("/mobile/movement-type", async (request, response, next) => {
+  try {
+      const input = combineRequestInput(request);
+      const result = await MovementTypeMaster.find({ isActive: true, isArchived: false })
+      .select("id movementTypeId type ")
+      .lean();
+      return response.json({ success: true, data: result });
+    } catch (error: unknown) {
+      next(error);
+    }
 });
 
 movementTypeMasterRouter.get("/:id", async (request, response, next) => {

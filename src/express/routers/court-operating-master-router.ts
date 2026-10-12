@@ -9,6 +9,7 @@ import { createCourtOperatingMasterService } from "@/services/create-court-opera
 import { updateCourtOperatingMasterService } from "@/services/update-court-operating-master-service";
 
 import { deleteCourtOperatingMasterService } from "@/services/delete-court-operating-master-service";
+import CourtOperatingMaster from "@/schemas/court-operating-master-schema";
 
 export const courtOperatingMasterRouter = express.Router();
 
@@ -21,6 +22,25 @@ courtOperatingMasterRouter.get("/", async (request, response, next) => {
     next(error);
   }
 });
+
+// MOBILE API
+courtOperatingMasterRouter.get(
+  "/mobile/court-operating",
+  async (request, response, next) => {
+    try {
+      const input = combineRequestInput(request);
+      const result = await CourtOperatingMaster.find({
+        isActive: true,
+        isArchived: false,
+      })
+        .select("id courtId day openTime closeTime isClosed ")
+        .lean();
+      return response.json({ success: true, data: result });
+    } catch (error: unknown) {
+      next(error);
+    }
+  },
+);
 
 courtOperatingMasterRouter.get("/:id", async (request, response, next) => {
   try {

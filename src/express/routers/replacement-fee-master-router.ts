@@ -9,6 +9,7 @@ import { createReplacementFeeMasterService } from "@/services/create-replacement
 import { updateReplacementFeeMasterService } from "@/services/update-replacement-fee-master-service";
 
 import { deleteReplacementFeeMasterService } from "@/services/delete-replacement-master-service";
+import ReplacementFeeMaster from "@/schemas/replacement-fee-master-schema";
 export const replacementFeeMasterRouter = express.Router();
 
 replacementFeeMasterRouter.get("/", async (request, response, next) => {
@@ -19,6 +20,19 @@ replacementFeeMasterRouter.get("/", async (request, response, next) => {
   } catch (error: unknown) {
     next(error);
   }
+});
+
+// MOBILE API
+replacementFeeMasterRouter.get("/mobile/replacement-fee", async (request, response, next) => {
+  try {
+          const input = combineRequestInput(request);
+          const result = await ReplacementFeeMaster.find({ isActive: true, isArchived: false })
+          .select("id feeId feeAmount currency tax projectCode ")
+          .lean();
+          return response.json({ success: true, data: result });
+        } catch (error: unknown) {
+          next(error);
+        }
 });
 
 replacementFeeMasterRouter.get("/:id", async (request, response, next) => {

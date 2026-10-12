@@ -10,7 +10,7 @@ type Props = {
 type Input = {
   id?: string;    
   courtId?: string;
-  day?: string;
+  day?: string[];
   openTime?: string;
   closeTime?: string;
   isClosed?: boolean;
@@ -25,7 +25,7 @@ export class UpdateCourtOperatingMasterService {
   }
 
   public async execute(input: Input): Promise<Result<string, Failure>> {
-    // Primary Key (id) prioritized first, fallback to courtOperatingId
+    // Primary Key (id) prioritized first
     const targetId = input.id;
 
     if (!targetId) {
@@ -51,7 +51,7 @@ export class UpdateCourtOperatingMasterService {
     const courtOperatingModel = CourtOperatingMasterModel.make({
       id: targetId,
       courtId: input.courtId || record.courtId,
-      day: input.day || record.day,
+      day: typeof input.day !== "undefined" ? input.day : record.day,
       openTime: input.openTime || record.openTime,
       closeTime: input.closeTime || record.closeTime,
       isClosed: isClosed,

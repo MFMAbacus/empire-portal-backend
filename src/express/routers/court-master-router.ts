@@ -9,6 +9,7 @@ import { createCourtMasterService } from "@/services/create-court-master-service
 import { updateCourtMasterService } from "@/services/update-court-master-service";
 
 import { deleteCourtMasterService } from "@/services/delete-court-master-service";
+import CourtMaster from "@/schemas/court-master-schema";
 
 export const courtMasterRouter = express.Router();
 
@@ -17,6 +18,18 @@ courtMasterRouter.get("/", async (request, response, next) => {
     const input = combineRequestInput(request);
     const result = await getCourtMasterService.execute(input);
     return presentResult(result, response);
+  } catch (error: unknown) {
+    next(error);
+  }
+});
+
+// MOBILE API
+courtMasterRouter.get("/mobile/court-master", async (request, response, next) => {
+  try {
+    const input = combineRequestInput(request);
+    const result = await CourtMaster.find({ isActive: true, isArchived: false })
+    .select("id courtId courtName courtType location projectCode ",)        .lean();
+      return response.json({ success: true, data: result });
   } catch (error: unknown) {
     next(error);
   }

@@ -9,6 +9,7 @@ import { createProjectVenueMasterService } from "@/services/create-project-venue
 import { updateProjectVenueMasterService } from "@/services/update-project-venue-master-service";
 
 import { deleteProjectVenueMasterService } from "@/services/delete-project-venue-master-service";
+import ProjectVenueMaster from "@/schemas/project-venue-master-schema";
 
 export const projectVenueMasterRouter = express.Router();
 
@@ -21,6 +22,22 @@ projectVenueMasterRouter.get("/", async (request, response, next) => {
     next(error);
   }
 });
+
+// MOBILE API
+projectVenueMasterRouter.get("/mobile/project-venue", async (request, response, next) => {
+  try {
+    const input = combineRequestInput(request);
+    const result = await ProjectVenueMaster.find({ isActive: true, isArchived: false })
+      .select(
+        "id venueId projectCode isAccess ",
+      )
+      .lean();
+    return response.json({ success: true, data: result });
+  } catch (error: unknown) {
+    next(error);
+  }
+});
+
 
 projectVenueMasterRouter.get("/:id", async (request, response, next) => {
   try {

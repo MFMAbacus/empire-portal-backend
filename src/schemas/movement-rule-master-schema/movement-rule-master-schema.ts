@@ -6,7 +6,7 @@ export interface IMovementRuleMaster extends Document {
   projectCode: string;
   startTime: string;
   endTime: string;
-  blockedDays?: string;
+  blockedDays?: string[];
   isActive: boolean;
   isArchived: boolean;
 }
@@ -18,7 +18,7 @@ const MovementRuleMasterSchema: Schema = new Schema(
     projectCode: { type: String, required: true },
     startTime: { type: String, required: true },
     endTime: { type: String, required: true },
-    blockedDays: { type: String, required: false, default: "" },
+    blockedDays: { type: [String], required: false, default: [] },
     isActive: { type: Boolean, default: true },
     isArchived: { type: Boolean, default: false },
   },

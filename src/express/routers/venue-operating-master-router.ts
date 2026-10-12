@@ -9,8 +9,24 @@ import { createVenueOperatingMasterService } from "@/services/create-venue-opera
 import { updateVenueOperatingMasterService } from "@/services/update-venue-operating-master-service";
 
 import { deleteVenueOperatingMasterService } from "@/services/delete-venue-operating-master-service";
+import VenueOperatingMaster from "@/schemas/venue-operating-master-schema";
 
 export const venueOperatingMasterRouter = express.Router();
+
+// MOBILE API
+venueOperatingMasterRouter.get("/mobile/venue-operating", async (request, response, next) => {
+  try {
+    const input = combineRequestInput(request);
+    const result = await VenueOperatingMaster.find({ isActive: true, isArchived: false })
+      .select(
+        "id venueId day openTime closeTime isClosed ",
+      )
+      .lean();
+    return response.json({ success: true, data: result });
+  } catch (error: unknown) {
+    next(error);
+  }
+});
 
 venueOperatingMasterRouter.get("/", async (request, response, next) => {
   try {

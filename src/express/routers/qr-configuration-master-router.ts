@@ -8,8 +8,22 @@ import { getSingleQRConfigurationMasterService } from "@/services/get-single-qr-
 import { createQRConfigurationMasterService } from "@/services/create-qr-configuration-master-service";
 import { updateQRConfigurationMasterService } from "@/services/update-qr-configuration-master-service";
 import { deleteQRConfigurationMasterService } from "@/services/delete-qr-configuration-master-service";
+import QRConfigurationMaster from "@/schemas/qr-configuration-master-schema";
 
 export const qrConfigurationMasterRouter = express.Router();
+
+// MOBILE API
+qrConfigurationMasterRouter.get("/mobile/qr-detail", async (request, response, next) => {
+  try {
+      const input = combineRequestInput(request);
+      const result = await QRConfigurationMaster.find({ isActive: true, isArchived: false })
+      .select("id qrConfigId expiryHours isOneTimeScan isGateValidation isPdfRequired ")
+      .lean();
+      return response.json({ success: true, data: result });
+    } catch (error: unknown) {
+      next(error);
+    }
+});
 
 qrConfigurationMasterRouter.get("/", async (request, response, next) => {
   try {

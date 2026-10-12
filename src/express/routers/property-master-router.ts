@@ -8,6 +8,7 @@ import { getSinglePropertyMasterService } from "@/services/get-single-property-m
 import { createPropertyMasterService } from "@/services/create-property-master-service";
 import { updatePropertyMasterService } from "@/services/update-property-master-service";
 import { deletePropertyMasterService } from "@/services/delete-property-master-service";
+import PropertyMaster from "@/schemas/property-master-schema";
 
 export const propertyMasterRouter = express.Router();
 
@@ -21,6 +22,18 @@ propertyMasterRouter.get("/", async (request, response, next) => {
   }
 });
 
+// MOBILE API
+propertyMasterRouter.get("/mobile/property-master", async (request, response, next) => {
+  try {
+    const input = combineRequestInput(request);
+    const result = await PropertyMaster.find({ isActive: true, isArchived: false })
+    .select("id propertyName projectCode projectName")
+    .lean();
+    return response.json({ success: true, data: result });
+  } catch (error: unknown) {
+    next(error);
+  }
+});
 propertyMasterRouter.get("/:id", async (request, response, next) => {
   try {
     const input = combineRequestInput(request);

@@ -9,6 +9,7 @@ import { createCourtTimeMasterService } from "@/services/create-court-time-maste
 import { updateCourtTimeMasterService } from "@/services/update-court-time-master-service";
 
 import { deleteCourtTimeMasterService } from "@/services/delete-court-time-master-service";
+import CourtTimeMaster from "@/schemas/court-time-master-schema";
 
 export const courtTimeMasterRouter = express.Router();
 
@@ -21,6 +22,25 @@ courtTimeMasterRouter.get("/", async (request, response, next) => {
     next(error);
   }
 });
+
+// MOBILE API
+courtTimeMasterRouter.get(
+  "/mobile/court-time",
+  async (request, response, next) => {
+    try {
+      const input = combineRequestInput(request);
+      const result = await CourtTimeMaster.find({
+        isActive: true,
+        isArchived: false,
+      })
+        .select("id courtId startTime endTime slotDuration ")
+        .lean();
+      return response.json({ success: true, data: result });
+    } catch (error: unknown) {
+      next(error);
+    }
+  },
+);
 
 courtTimeMasterRouter.get("/:id", async (request, response, next) => {
   try {
