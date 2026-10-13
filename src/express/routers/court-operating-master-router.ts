@@ -25,13 +25,15 @@ courtOperatingMasterRouter.get("/", async (request, response, next) => {
 
 // MOBILE API
 courtOperatingMasterRouter.get(
-  "/mobile/court-operating",
+  "/mobile/court-operating/:id",
   async (request, response, next) => {
     try {
-      const input = combineRequestInput(request);
-      const result = await CourtOperatingMaster.find({
-        isActive: true,
-        isArchived: false,
+      const { id } = request.params;
+
+      const result = await CourtOperatingMaster.find({ 
+        courtId: id,
+        isActive: true, 
+        isArchived: false 
       })
         .select("id courtId day openTime closeTime isClosed ")
         .lean();
@@ -41,6 +43,7 @@ courtOperatingMasterRouter.get(
     }
   },
 );
+
 
 courtOperatingMasterRouter.get("/:id", async (request, response, next) => {
   try {

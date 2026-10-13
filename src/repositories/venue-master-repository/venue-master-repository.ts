@@ -11,4 +11,5 @@ export abstract class VenueMasterRepository {
   public abstract Create(record: Partial<IVenueMaster>): Promise<IVenueMaster>;
   public abstract Update(record: Partial<IVenueMaster>): Promise<IVenueMaster | undefined>;
   public abstract delete(id: string): Promise<IVenueMaster | null>;
+  public abstract getNextVenueId(): Promise<string>;
 }

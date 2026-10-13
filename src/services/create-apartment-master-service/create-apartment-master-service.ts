@@ -10,7 +10,7 @@ type Props = {
 
 type Input = {
   id?: string;               // Database Primary Key (Edit mode me hi aayega)
-  apartmentId: string;       // User Input Code (e.g. "APT-101")
+  apartmentId?: string;
   apartmentNo: string;
   buildingOrTower: string;
   floor: string;
@@ -44,12 +44,24 @@ export class CreateApartmentMasterService {
       }
     }
 
-    // CREATE LOGIC (Jab Naya Record banega tab DB ki primary key 'AM' prefix se generate hogi)
+    // CREATE LOGIC
     const primaryKeyId = input.id || Generator.id("AM");
 
+    let finalApartmentId = input.apartmentId;
+    
+    if (!finalApartmentId || finalApartmentId.trim() === "") {
+      const nextSeqNumber = await this._apartmentMasterRepository.getNextApartmentId();
+      const numericPart = typeof nextSeqNumber === "number" 
+        ? nextSeqNumber 
+        : parseInt(nextSeqNumber.replace(/\D/g, "")) || 1;
+
+      const paddedNumber = String(numericPart).padStart(6, "0");
+      finalApartmentId = `APT-${paddedNumber}`;
+    }
+
     const apartmentModel = ApartmentMasterModel.make({
-      id: primaryKeyId,              // Database Primary Key -> AM-12345
-      apartmentId: input.apartmentId, // User Input -> APT-101
+      id: primaryKeyId,
+      apartmentId: finalApartmentId,
       projectCode: input.projectCode,
       apartmentNo: input.apartmentNo,
       floor: input.floor,

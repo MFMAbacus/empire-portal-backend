@@ -11,4 +11,5 @@ export abstract class ResidentMasterRepository {
   public abstract Create(record: Partial<IResidentMaster>): Promise<IResidentMaster>;
   public abstract Update(record: Partial<IResidentMaster>): Promise<IResidentMaster | undefined>;
   public abstract delete(id: string): Promise<IResidentMaster | null>;
+  public abstract getNextResidentId(): Promise<string>;
 }

@@ -47,9 +47,22 @@ export class CreateReplacementFeeMasterService {
     // CREATE LOGIC (Jab Naya Record banega tab DB ki primary key 'FI' prefix se generate hogi)
     const primaryKeyId = input.id || Generator.id("FI");
 
+    
+    let finalFeeId = input.feeId;
+    
+    if (!finalFeeId || finalFeeId.trim() === "") {
+      const nextSeqNumber = await this._replacementFeeMasterRepository.getNextReplacementFeeId();
+      const numericPart = typeof nextSeqNumber === "number" 
+        ? nextSeqNumber 
+        : parseInt(nextSeqNumber.replace(/\D/g, "")) || 1;
+
+      const paddedNumber = String(numericPart).padStart(6, "0");
+      finalFeeId = `FEE-${paddedNumber}`;
+    }
+
     const replacementFeeModel = ReplacementFeeMasterModel.make({
       id: primaryKeyId,              // Database Primary Key -> FI-12345
-      feeId: input.feeId, // User Input -> APT-101
+      feeId: finalFeeId, // User Input -> FEE-000001
       projectCode: input.projectCode,
       feeAmount: input.feeAmount,
       tax: input.tax,

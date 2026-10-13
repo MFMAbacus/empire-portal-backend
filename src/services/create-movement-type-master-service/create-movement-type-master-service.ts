@@ -41,9 +41,21 @@ export class CreateMovementTypeMasterService {
     // CREATE LOGIC (Jab Naya Record banega tab DB ki primary key 'MT' prefix se generate hogi)
     const primaryKeyId = input.id || Generator.id("MT");
 
+    let finalMovementTypeId = input.movementTypeId;
+    
+    if (!finalMovementTypeId || finalMovementTypeId.trim() === "") {
+      const nextSeqNumber = await this._movementTypeMasterRepository.getNextMovementTypeId();
+      const numericPart = typeof nextSeqNumber === "number" 
+        ? nextSeqNumber 
+        : parseInt(nextSeqNumber.replace(/\D/g, "")) || 1;
+
+      const paddedNumber = String(numericPart).padStart(6, "0");
+      finalMovementTypeId = `MT-${paddedNumber}`;
+    }
+
     const movementTypeModel = MovementTypeMasterModel.make({
-      id: primaryKeyId,                  // Database Primary Key -> MT-12345
-      movementTypeId: input.movementTypeId, // User Input -> MT-01
+      id: primaryKeyId,
+      movementTypeId: finalMovementTypeId,
       type: input.type,                  // Move-In / Move-Out
       isActive: isActive,
       isArchived: false,

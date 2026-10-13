@@ -24,12 +24,20 @@ courtMasterRouter.get("/", async (request, response, next) => {
 });
 
 // MOBILE API
-courtMasterRouter.get("/mobile/court-master", async (request, response, next) => {
+courtMasterRouter.get("/mobile/court-master/:id", async (request, response, next) => {
   try {
-    const input = combineRequestInput(request);
-    const result = await CourtMaster.find({ isActive: true, isArchived: false })
-    .select("id courtId courtName courtType location projectCode ",)        .lean();
-      return response.json({ success: true, data: result });
+    const { id } = request.params;
+
+    const result = await CourtMaster.find({ 
+      projectCode: id,
+      isActive: true, 
+      isArchived: false 
+    })
+      .select(
+        "id courtId courtName courtType location projectCode ",
+      )
+      .lean();
+    return response.json({ success: true, data: result });
   } catch (error: unknown) {
     next(error);
   }

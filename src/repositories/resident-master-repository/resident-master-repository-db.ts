@@ -41,4 +41,19 @@ export class ResidentMasterRepositoryDb
   public async delete(id: string): Promise<IResidentMaster | null> {
     return await super.delete(id);
   }
+  public async getNextResidentId(): Promise<string> {
+      const lastRecord = await ResidentMaster.findOne({
+        residentId: { $regex: /^RES-/ }
+      })
+        .sort({ createdAt: -1, _id: -1 })
+        .lean();
+      let nextNumber = 1;
+      if (lastRecord && lastRecord.residentId) {
+        const parts = lastRecord.residentId.split("-");
+        if (parts.length === 2 && !isNaN(Number(parts[1]))) {
+          nextNumber = Number(parts[1]) + 1;
+        }
+      }
+      return `RES-${String(nextNumber).padStart(6, "0")}`;
+    } 
 }

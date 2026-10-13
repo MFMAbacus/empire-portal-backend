@@ -25,13 +25,15 @@ courtTimeMasterRouter.get("/", async (request, response, next) => {
 
 // MOBILE API
 courtTimeMasterRouter.get(
-  "/mobile/court-time",
+  "/mobile/court-time/:id",
   async (request, response, next) => {
     try {
-      const input = combineRequestInput(request);
-      const result = await CourtTimeMaster.find({
-        isActive: true,
-        isArchived: false,
+      const { id } = request.params;
+
+      const result = await CourtTimeMaster.find({ 
+        courtId: id,
+        isActive: true, 
+        isArchived: false 
       })
         .select("id courtId startTime endTime slotDuration ")
         .lean();
@@ -41,6 +43,7 @@ courtTimeMasterRouter.get(
     }
   },
 );
+
 
 courtTimeMasterRouter.get("/:id", async (request, response, next) => {
   try {

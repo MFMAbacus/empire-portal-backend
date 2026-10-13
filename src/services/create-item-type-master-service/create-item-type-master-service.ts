@@ -43,9 +43,20 @@ export class CreateItemTypeMasterService {
     // CREATE LOGIC (Jab Naya Record banega tab DB ki primary key 'MT' prefix se generate hogi)
     const primaryKeyId = input.id || Generator.id("IT");
 
+     let finalItemTypeId = input.itemTypeId;
+    
+    if (!finalItemTypeId || finalItemTypeId.trim() === "") {
+      const nextSeqNumber = await this._itemTypeMasterRepository.getNextItemTypeId();
+      const numericPart = typeof nextSeqNumber === "number" 
+        ? nextSeqNumber 
+        : parseInt(nextSeqNumber.replace(/\D/g, "")) || 1;
+
+      const paddedNumber = String(numericPart).padStart(6, "0");
+      finalItemTypeId = `IT-${paddedNumber}`;
+    }
     const itemTypeModel = ItemTypeMasterModel.make({
-      id: primaryKeyId,                  // Database Primary Key -> MT-12345
-      itemTypeId: input.itemTypeId, // User Input -> MT-01
+      id: primaryKeyId,
+      itemTypeId: finalItemTypeId,
       itemTypeName : input.itemTypeName,
       description: input.description,
       isActive: isActive,

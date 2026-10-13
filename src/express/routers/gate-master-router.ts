@@ -10,6 +10,7 @@ import { updateGateMasterService } from "@/services/update-gate-master-service";
 
 import { deleteGateMasterService } from "@/services/delete-gate-master-service";
 import GateMaster from "@/schemas/gate-master-schema";
+import ApartmentMaster from "@/schemas/apartment-master-schema/apartment-master-schema";
 
 export const gateMasterRouter = express.Router();
 
@@ -30,6 +31,23 @@ gateMasterRouter.get("/mobile/gate-master", async (request, response, next) => {
     const result = await GateMaster.find({ isActive: true, isArchived: false })
     .select("id gateId gateName location projectCode ")
     .lean();
+    return response.json({ success: true, data: result });
+  } catch (error: unknown) {
+    next(error);
+  }
+});
+gateMasterRouter.get("/mobile/gate-master/:id", async (request, response, next) => {
+  try {
+    const { id } = request.params; // Isme projectCode aayega
+
+    const result = await GateMaster.find({ 
+      projectCode: id,
+      isActive: true, 
+      isArchived: false 
+    })
+    .select("id gateId gateName location projectCode")
+    .lean();
+
     return response.json({ success: true, data: result });
   } catch (error: unknown) {
     next(error);

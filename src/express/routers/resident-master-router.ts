@@ -37,6 +37,25 @@ residentMasterRouter.get("/mobile/resident-master", async (request, response, ne
   }
 });
 
+residentMasterRouter.get("/mobile/resident-master/:projectCode/:apartmentId", async (request, response, next) => {
+  try {
+    const { projectCode, apartmentId } = request.params; // URL se projectCode aur apartmentId mil jayega
+
+    const result = await ResidentMaster.find({ 
+      projectCode: projectCode,
+      apartmentId: apartmentId,
+      isActive: true, 
+      isArchived: false 
+    })
+    .select("id residentId name email mobileNo loginUserId residentType apartmentId projectCode")
+    .lean();
+
+    return response.json({ success: true, data: result });
+  } catch (error: unknown) {
+    next(error);
+  }
+});
+
 residentMasterRouter.get("/:id", async (request, response, next) => {
   try {
     const input = combineRequestInput(request);

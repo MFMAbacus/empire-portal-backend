@@ -41,4 +41,19 @@ export class GuardAccountMappingMasterRepositoryDb
   public async delete(id: string): Promise<IGuardAccountMappingMaster | null> {
     return await super.delete(id);
   }
+  public async getNextGuardAccountId(): Promise<string> {
+    const lastRecord = await GuardAccountMappingMaster.findOne({
+      guardAccountId: { $regex: /^GA-/ }
+    })
+      .sort({ createdAt: -1, _id: -1 })
+      .lean();
+    let nextNumber = 1;
+    if (lastRecord && lastRecord.guardAccountId) {
+      const parts = lastRecord.guardAccountId.split("-");
+      if (parts.length === 2 && !isNaN(Number(parts[1]))) {
+        nextNumber = Number(parts[1]) + 1;
+      }
+    }
+    return `GA-${String(nextNumber).padStart(6, "0")}`;
+  }
 }

@@ -52,11 +52,21 @@ export class CreateResidentMasterService {
 
     // CREATE LOGIC (Naya record banne par Primary Key 'RM' prefix se generate hogi)
     const primaryKeyId = input.id || Generator.id("RM");
-    const residentId = input.residentId || Generator.id("RES");
 
+    let finalResidentId = input.residentId;
+    
+    if (!finalResidentId || finalResidentId.trim() === "") {
+      const nextSeqNumber = await this._residentMasterRepository.getNextResidentId();
+      const numericPart = typeof nextSeqNumber === "number" 
+        ? nextSeqNumber 
+        : parseInt(nextSeqNumber.replace(/\D/g, "")) || 1;
+
+      const paddedNumber = String(numericPart).padStart(6, "0");
+      finalResidentId = `RES-${paddedNumber}`;
+    }
     const residentModel = ResidentMasterModel.make({
       id: primaryKeyId,
-      residentId: residentId,
+      residentId: finalResidentId,
       name: input.name,
       email: input.email,
       mobileNo: input.mobileNo ?? 0,

@@ -24,12 +24,17 @@ venueMasterRouter.get("/", async (request, response, next) => {
 });
 
 // MOBILE API
-venueMasterRouter.get("/mobile/venue-master", async (request, response, next) => {
+venueMasterRouter.get("/mobile/venue-master/:id", async (request, response, next) => {
   try {
-              const input = combineRequestInput(request);
-              const result = await VenueMaster.find({ isActive: true, isArchived: false })
-              .select("id venueId venueName type projectCode location contact description imageOrLogo")
-              .lean();
+    const { id } = request.params; // Isme projectCode aayega
+
+    const result = await VenueMaster.find({ 
+      projectCode: id, // projectCode se filter karein
+      isActive: true, 
+      isArchived: false 
+    })
+    .select("id venueId venueName type projectCode location contact description imageOrLogo")
+    .lean();
               return response.json({ success: true, data: result });
             } catch (error: unknown) {
               next(error);

@@ -11,4 +11,5 @@ export abstract class CourtMasterRepository {
   public abstract Create(record: Partial<ICourtMaster>): Promise<ICourtMaster>;
   public abstract Update(record: Partial<ICourtMaster>): Promise<ICourtMaster | undefined>;
   public abstract delete(id: string): Promise<ICourtMaster | null>;
+  public abstract getNextCourtId(): Promise<string>;
 }

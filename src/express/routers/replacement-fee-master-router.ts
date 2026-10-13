@@ -23,12 +23,17 @@ replacementFeeMasterRouter.get("/", async (request, response, next) => {
 });
 
 // MOBILE API
-replacementFeeMasterRouter.get("/mobile/replacement-fee", async (request, response, next) => {
+replacementFeeMasterRouter.get("/mobile/replacement-fee/:id", async (request, response, next) => {
   try {
-          const input = combineRequestInput(request);
-          const result = await ReplacementFeeMaster.find({ isActive: true, isArchived: false })
-          .select("id feeId feeAmount currency tax projectCode ")
-          .lean();
+    const { id } = request.params; // Isme projectCode aayega
+
+    const result = await ReplacementFeeMaster.find({ 
+      projectCode: id, // projectCode se filter karein
+      isActive: true, 
+      isArchived: false 
+    })
+    .select("id feeId feeAmount currency tax projectCode ")
+    .lean();
           return response.json({ success: true, data: result });
         } catch (error: unknown) {
           next(error);

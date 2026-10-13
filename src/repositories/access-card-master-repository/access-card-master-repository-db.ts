@@ -41,4 +41,19 @@ export class AccessCardMasterRepositoryDb
   public async delete(id: string): Promise<IAccessCardMaster | null> {
     return await super.delete(id);
   }
+  public async getNextAccessCardId(): Promise<string> {
+    const lastRecord = await AccessCardMaster.findOne({
+      cardId: { $regex: /^AC-/ }
+    })
+      .sort({ createdAt: -1, _id: -1 })
+      .lean();
+    let nextNumber = 1;
+    if (lastRecord && lastRecord.cardId) {
+      const parts = lastRecord.cardId.split("-");
+      if (parts.length === 2 && !isNaN(Number(parts[1]))) {
+        nextNumber = Number(parts[1]) + 1;
+      }
+    }
+    return `AC-${String(nextNumber).padStart(6, "0")}`;
+  }
 }

@@ -45,9 +45,21 @@ export class CreateGateMasterService {
     // CREATE LOGIC (Jab Naya Record banega tab DB ki primary key 'AM' prefix se generate hogi)
     const primaryKeyId = input.id || Generator.id("GM");
 
+    let finalGateId = input.gateId;
+    
+    if (!finalGateId || finalGateId.trim() === "") {
+      const nextSeqNumber = await this._gateMasterRepository.getNextGateId();
+      const numericPart = typeof nextSeqNumber === "number" 
+        ? nextSeqNumber 
+        : parseInt(nextSeqNumber.replace(/\D/g, "")) || 1;
+
+      const paddedNumber = String(numericPart).padStart(6, "0");
+      finalGateId = `GTE-${paddedNumber}`;
+    }
+
     const gateModel = GateMasterModel.make({
-      id: primaryKeyId,              // Database Primary Key -> AM-12345
-      gateId: input.gateId, // User Input -> APT-101
+      id: primaryKeyId,
+      gateId: finalGateId,
       projectCode: input.projectCode,
       gateName: input.gateName,
       location: input.location,

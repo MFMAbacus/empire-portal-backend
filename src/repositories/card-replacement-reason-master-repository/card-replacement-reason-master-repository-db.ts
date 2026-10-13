@@ -41,4 +41,19 @@ export class CardReplacementReasonMasterRepositoryDb
   public async delete(id: string): Promise<ICardReplacementReasonMaster | null> {
     return await super.delete(id);
   }
+  public async getNextCardReplacementReasonId(): Promise<string> {
+    const lastRecord = await CardReplacementReasonMaster.findOne({
+      reasonId: { $regex: /^CRR-/ }
+    })
+      .sort({ createdAt: -1, _id: -1 })
+      .lean();
+    let nextNumber = 1;
+    if (lastRecord && lastRecord.reasonId) {
+      const parts = lastRecord.reasonId.split("-");
+      if (parts.length === 2 && !isNaN(Number(parts[1]))) {
+        nextNumber = Number(parts[1]) + 1;
+      }
+    }
+    return `CRR-${String(nextNumber).padStart(6, "0")}`;
+  }
 }

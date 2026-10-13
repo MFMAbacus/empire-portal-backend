@@ -24,12 +24,17 @@ movementRuleMasterRouter.get("/", async (request, response, next) => {
 });
 
 // MOBILE API
-movementRuleMasterRouter.get("/mobile/movement-rule", async (request, response, next) => {
+movementRuleMasterRouter.get("/mobile/movement-rule/:id", async (request, response, next) => {
   try {
-      const input = combineRequestInput(request);
-      const result = await MovementRuleMaster.find({ isActive: true, isArchived: false })
-      .select("id ruleId projectCode startTime endTime blockedDays ")
-      .lean();
+    const { id } = request.params;
+
+    const result = await MovementRuleMaster.find({ 
+      projectCode: id,
+      isActive: true, 
+      isArchived: false 
+    })
+    .select("id ruleId projectCode startTime endTime blockedDays ")
+    .lean();
       return response.json({ success: true, data: result });
     } catch (error: unknown) {
       next(error);

@@ -24,10 +24,15 @@ courtBlockingMasterRouter.get("/", async (request, response, next) => {
 });
 
 // MOBILE API
-courtBlockingMasterRouter.get("/mobile/court-blocking", async (request, response, next) => {
+courtBlockingMasterRouter.get("/mobile/court-blocking/:id", async (request, response, next) => {
   try {
-    const input = combineRequestInput(request);
-    const result = await CourtBlockingMaster.find({ isActive: true, isArchived: false })
+    const { id } = request.params;
+
+    const result = await CourtBlockingMaster.find({ 
+      courtId: id,
+      isActive: true, 
+      isArchived: false 
+    })
     .select(
     "id blockId blockDate startTime endTime courtId reason createdBy ",
     )

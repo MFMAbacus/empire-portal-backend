@@ -11,4 +11,5 @@ export abstract class GuardAccountMappingMasterRepository {
   public abstract Create(record: Partial<IGuardAccountMappingMaster>): Promise<IGuardAccountMappingMaster>;
   public abstract Update(record: Partial<IGuardAccountMappingMaster>): Promise<IGuardAccountMappingMaster | undefined>;
   public abstract delete(id: string): Promise<IGuardAccountMappingMaster | null>;
+  public abstract getNextGuardAccountId(): Promise<string>;
 }

@@ -11,4 +11,5 @@ export abstract class MenuMasterRepository {
   public abstract Create(record: Partial<IMenuMaster>): Promise<IMenuMaster>;
   public abstract Update(record: Partial<IMenuMaster>): Promise<IMenuMaster | undefined>;
   public abstract delete(id: string): Promise<IMenuMaster | null>;
+  public abstract getNextMenuId(): Promise<string>;
 }

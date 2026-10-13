@@ -44,9 +44,21 @@ export class CreateCardReplacementReasonMasterService {
     // CREATE LOGIC (Jab Naya Record banega tab DB ki primary key 'MT' prefix se generate hogi)
     const primaryKeyId = input.id || Generator.id("RI");
 
+    let finalReasonId = input.reasonId;
+    
+    if (!finalReasonId || finalReasonId.trim() === "") {
+      const nextSeqNumber = await this._cardReplacementReasonMasterRepository.getNextCardReplacementReasonId();
+      const numericPart = typeof nextSeqNumber === "number" 
+        ? nextSeqNumber 
+        : parseInt(nextSeqNumber.replace(/\D/g, "")) || 1;
+
+      const paddedNumber = String(numericPart).padStart(6, "0");
+      finalReasonId = `CRR-${paddedNumber}`;
+    }
+
     const cardReplacementReasonModel = CardReplacementReasonMasterModel.make({
-      id: primaryKeyId,                  // Database Primary Key -> MT-12345
-      reasonId: input.reasonId, // User Input -> MT-01
+      id: primaryKeyId,
+      reasonId: finalReasonId,
       reasonName : input.reasonName,
       chargesApplicable: chargesApplicable,
       isActive: isActive,

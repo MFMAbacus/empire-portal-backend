@@ -11,4 +11,5 @@ export abstract class GateMasterRepository {
   public abstract Create(record: Partial<IGateMaster>): Promise<IGateMaster>;
   public abstract Update(record: Partial<IGateMaster>): Promise<IGateMaster | undefined>;
   public abstract delete(id: string): Promise<IGateMaster | null>;
+  public abstract getNextGateId(): Promise<string>;
 }

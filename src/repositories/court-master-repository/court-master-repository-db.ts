@@ -41,4 +41,19 @@ export class CourtMasterRepositoryDb
   public async delete(id: string): Promise<ICourtMaster | null> {
     return await super.delete(id);
   }
+  public async getNextCourtId(): Promise<string> {
+    const lastRecord = await CourtMaster.findOne({
+      courtId: { $regex: /^CRT-/ }
+    })
+      .sort({ createdAt: -1, _id: -1 })
+      .lean();
+    let nextNumber = 1;
+    if (lastRecord && lastRecord.courtId) {
+      const parts = lastRecord.courtId.split("-");
+      if (parts.length === 2 && !isNaN(Number(parts[1]))) {
+        nextNumber = Number(parts[1]) + 1;
+      }
+    }
+    return `CRT-${String(nextNumber).padStart(6, "0")}`;
+  }
 }

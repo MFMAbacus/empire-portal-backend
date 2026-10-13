@@ -11,4 +11,5 @@ export abstract class AccessCardMasterRepository {
   public abstract Create(record: Partial<IAccessCardMaster>): Promise<IAccessCardMaster>;
   public abstract Update(record: Partial<IAccessCardMaster>): Promise<IAccessCardMaster | undefined>;
   public abstract delete(id: string): Promise<IAccessCardMaster | null>;
+  public abstract getNextAccessCardId(): Promise<string>;
 }

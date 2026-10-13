@@ -41,4 +41,20 @@ export class VenueMasterRepositoryDb
   public async delete(id: string): Promise<IVenueMaster | null> {
     return await super.delete(id);
   }
+  public async getNextVenueId(): Promise<string> {
+     const lastRecord = (await VenueMaster.findOne({
+       venueId: { $regex: /^VEN-/ }
+     })
+       .sort({ createdAt: -1, _id: -1 })
+       .lean()) as IVenueMaster | null;
+
+     let nextNumber = 1;
+     if (lastRecord && lastRecord.venueId) {
+       const parts = lastRecord.venueId.split("-");
+       if (parts.length === 2 && !isNaN(Number(parts[1]))) {
+         nextNumber = Number(parts[1]) + 1;
+       }
+     }
+     return `VEN-${String(nextNumber).padStart(6, "0")}`;
+   }
 }

@@ -11,4 +11,5 @@ export abstract class VehicleTypeMasterRepository {
   public abstract Create(record: Partial<IVehicleTypeMaster>): Promise<IVehicleTypeMaster>;
   public abstract Update(record: Partial<IVehicleTypeMaster>): Promise<IVehicleTypeMaster | undefined>;
   public abstract delete(id: string): Promise<IVehicleTypeMaster | null>;
+  public abstract getNextVehicleTypeId(): Promise<string>;
 }

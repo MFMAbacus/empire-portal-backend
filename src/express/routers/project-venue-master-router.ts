@@ -24,10 +24,16 @@ projectVenueMasterRouter.get("/", async (request, response, next) => {
 });
 
 // MOBILE API
-projectVenueMasterRouter.get("/mobile/project-venue", async (request, response, next) => {
+projectVenueMasterRouter.get("/mobile/project-venue/:projectCode/:venueId", async (request, response, next) => {
   try {
-    const input = combineRequestInput(request);
-    const result = await ProjectVenueMaster.find({ isActive: true, isArchived: false })
+    const { projectCode, venueId } = request.params;
+
+    const result = await ProjectVenueMaster.find({ 
+      projectCode: projectCode,
+      venueId: venueId,
+      isActive: true, 
+      isArchived: false 
+    })
       .select(
         "id venueId projectCode isAccess ",
       )

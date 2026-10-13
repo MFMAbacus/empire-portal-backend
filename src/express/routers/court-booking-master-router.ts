@@ -22,11 +22,16 @@ courtBookingMasterRouter.get("/", async (request, response, next) => {
     next(error);
   }
 });
-
-courtBookingMasterRouter.get("/mobile/court-booking", async (request, response, next) => {
+//Mobile APi
+courtBookingMasterRouter.get("/mobile/court-booking/:id", async (request, response, next) => {
   try {
-    const input = combineRequestInput(request);
-    const result = await CourtBookingMaster.find({ isActive: true, isArchived: false })
+    const { id } = request.params;
+
+    const result = await CourtBookingMaster.find({ 
+      projectCode: id,
+      isActive: true, 
+      isArchived: false 
+    })
     .select("id maxBooking advanceBooking projectCode pendingSlot ",)
     .lean();
     return response.json({ success: true, data: result });

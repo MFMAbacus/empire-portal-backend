@@ -25,13 +25,15 @@ deliverySLAMasterRouter.get("/", async (request, response, next) => {
 
 // MOBILE API
 deliverySLAMasterRouter.get(
-  "/mobile/delivery-master",
+  "/mobile/delivery-master/:id",
   async (request, response, next) => {
     try {
-      const input = combineRequestInput(request);
-      const result = await DeliverySLAMaster.find({
+      const { id } = request.params; // Isme projectCode aayega
+
+      const result = await DeliverySLAMaster.find({ 
+        projectCode: id, // projectCode se filter karein
         isActive: true,
-        isArchived: false,
+        isArchived: false
       })
         .select("id deliveryPeriodHours projectCode")
         .lean();

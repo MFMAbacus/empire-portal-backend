@@ -5,6 +5,7 @@ import {
   GateMasterRepository,
   GetAllGateMasterOptions,
 } from "./gate-master-repository";
+import ResidentMaster from "@/schemas/resident-master-schema/resident-master-schema";
 
 export class GateMasterRepositoryDb
   extends MongoRepository<IGateMaster>
@@ -41,4 +42,19 @@ export class GateMasterRepositoryDb
   public async delete(id: string): Promise<IGateMaster | null> {
     return await super.delete(id);
   }
+   public async getNextGateId(): Promise<string> {
+      const lastRecord = await GateMaster.findOne({
+        gateId: { $regex: /^GTE-/ }
+      })
+        .sort({ createdAt: -1, _id: -1 })
+        .lean();
+      let nextNumber = 1;
+      if (lastRecord && lastRecord.gateId) {
+        const parts = lastRecord.gateId.split("-");
+        if (parts.length === 2 && !isNaN(Number(parts[1]))) {
+          nextNumber = Number(parts[1]) + 1;
+        }
+      }
+      return `GTE-${String(nextNumber).padStart(6, "0")}`;
+    } 
 }

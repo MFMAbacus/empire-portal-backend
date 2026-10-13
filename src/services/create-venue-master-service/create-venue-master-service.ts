@@ -53,9 +53,21 @@ export class CreateVenueMasterService {
     // CREATE LOGIC (Jab Naya Record banega tab DB ki primary key 'VM' prefix se generate hogi)
     const primaryKeyId = input.id || Generator.id("VM");
 
+    let finalVenueId = input.venueId;
+    
+    if (!finalVenueId || finalVenueId.trim() === "") {
+      const nextSeqNumber = await this._venueMasterRepository.getNextVenueId();
+      const numericPart = typeof nextSeqNumber === "number" 
+        ? nextSeqNumber 
+        : parseInt(nextSeqNumber.replace(/\D/g, "")) || 1;
+
+      const paddedNumber = String(numericPart).padStart(6, "0");
+      finalVenueId = `VEN-${paddedNumber}`;
+    }
+
     const venueModel = VenueMasterModel.make({
-      id: primaryKeyId,          // Database Primary Key -> VM-12345
-      venueId: input.venueId,    // User Input Code -> VEN-001
+      id: primaryKeyId,
+      venueId: finalVenueId,
       venueName: input.venueName,
       type: input.type,
       projectCode: input.projectCode,

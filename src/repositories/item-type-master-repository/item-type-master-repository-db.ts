@@ -41,4 +41,19 @@ export class ItemTypeMasterRepositoryDb
   public async delete(id: string): Promise<IItemTypeMaster | null> {
     return await super.delete(id);
   }
+  public async getNextItemTypeId(): Promise<string> {
+    const lastRecord = await ItemTypeMaster.findOne({
+      itemTypeId: { $regex: /^IT-/ }
+    })
+      .sort({ createdAt: -1, _id: -1 })
+      .lean();
+    let nextNumber = 1;
+    if (lastRecord && lastRecord.itemTypeId) {
+      const parts = lastRecord.itemTypeId.split("-");
+      if (parts.length === 2 && !isNaN(Number(parts[1]))) {
+        nextNumber = Number(parts[1]) + 1;
+      }
+    }
+    return `IT-${String(nextNumber).padStart(6, "0")}`;
+  }
 }

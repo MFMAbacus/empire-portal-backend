@@ -47,9 +47,21 @@ export class CreateCourtMasterService {
     // CREATE LOGIC (Jab Naya Record banega tab DB ki primary key 'CM' prefix se generate hogi)
     const primaryKeyId = input.id || Generator.id("CM");
 
+    let finalCourtId = input.courtId;
+    
+    if (!finalCourtId || finalCourtId.trim() === "") {
+      const nextSeqNumber = await this._courtMasterRepository.getNextCourtId();
+      const numericPart = typeof nextSeqNumber === "number" 
+        ? nextSeqNumber 
+        : parseInt(nextSeqNumber.replace(/\D/g, "")) || 1;
+
+      const paddedNumber = String(numericPart).padStart(6, "0");
+      finalCourtId = `CRT-${paddedNumber}`;
+    }
+
     const courtModel = CourtMasterModel.make({
-      id: primaryKeyId,              // Database Primary Key -> CM-12345
-      courtId: input.courtId, // User Input -> APT-101
+      id: primaryKeyId,
+      courtId: finalCourtId,
       projectCode: input.projectCode,
       courtName: input.courtName,
       location: input.location,

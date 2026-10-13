@@ -41,4 +41,19 @@ export class MenuMasterRepositoryDb
   public async delete(id: string): Promise<IMenuMaster | null> {
     return await super.delete(id);
   }
+  public async getNextMenuId(): Promise<string> {
+    const lastRecord = await MenuMaster.findOne({
+      menuId: { $regex: /^MNU-/ }
+    })
+      .sort({ createdAt: -1, _id: -1 })
+      .lean();
+    let nextNumber = 1;
+    if (lastRecord && lastRecord.menuId) {
+      const parts = lastRecord.menuId.split("-");
+      if (parts.length === 2 && !isNaN(Number(parts[1]))) {
+        nextNumber = Number(parts[1]) + 1;
+      }
+    }
+    return `MNU-${String(nextNumber).padStart(6, "0")}`;
+  }
 }

@@ -41,4 +41,19 @@ export class ReplacementFeeMasterRepositoryDb
   public async delete(id: string): Promise<IReplacementFeeMaster | null> {
     return await super.delete(id);
   }
+  public async getNextReplacementFeeId(): Promise<string> {
+    const lastRecord = await ReplacementFeeMaster.findOne({
+      feeId: { $regex: /^FEE-/ }
+    })
+      .sort({ createdAt: -1, _id: -1 })
+      .lean();
+    let nextNumber = 1;
+    if (lastRecord && lastRecord.feeId) {
+      const parts = lastRecord.feeId.split("-");
+      if (parts.length === 2 && !isNaN(Number(parts[1]))) {
+        nextNumber = Number(parts[1]) + 1;
+      }
+    }
+    return `FEE-${String(nextNumber).padStart(6, "0")}`;
+  }
 }

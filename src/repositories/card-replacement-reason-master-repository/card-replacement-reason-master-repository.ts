@@ -11,4 +11,5 @@ export abstract class CardReplacementReasonMasterRepository {
   public abstract Create(record: Partial<ICardReplacementReasonMaster>): Promise<ICardReplacementReasonMaster>;
   public abstract Update(record: Partial<ICardReplacementReasonMaster>): Promise<ICardReplacementReasonMaster | undefined>;
   public abstract delete(id: string): Promise<ICardReplacementReasonMaster | null>;
+  public abstract getNextCardReplacementReasonId(): Promise<string>;
 }

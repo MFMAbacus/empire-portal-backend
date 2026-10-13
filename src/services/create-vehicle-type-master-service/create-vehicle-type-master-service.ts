@@ -25,7 +25,18 @@ export class CreateVehicleTypeMasterService {
   public async execute(input: Input): Promise<Result<string, Failure>> {
     const isActive = typeof input.isActive !== "undefined" ? Boolean(input.isActive) : true;
     const targetId = input.id;
-    const vehicleTypeId = input.vehicleTypeId || targetId;
+    
+    let finalVehicleTypeId = input.vehicleTypeId;
+    
+    if (!finalVehicleTypeId || finalVehicleTypeId.trim() === "") {
+      const nextSeqNumber = await this._vehicleTypeMasterRepository.getNextVehicleTypeId();
+      const numericPart = typeof nextSeqNumber === "number" 
+        ? nextSeqNumber 
+        : parseInt(nextSeqNumber.replace(/\D/g, "")) || 1;
+
+      const paddedNumber = String(numericPart).padStart(6, "0");
+      finalVehicleTypeId = `VT-${paddedNumber}`;
+    }
 
     if (targetId) {
       const existing = await this._vehicleTypeMasterRepository.get(targetId);
@@ -40,7 +51,7 @@ export class CreateVehicleTypeMasterService {
 
     const vehicleTypeModel = VehicleTypeMasterModel.make({
       id: targetId || Generator.id("VTM"),
-      vehicleTypeId: vehicleTypeId,
+      vehicleTypeId: finalVehicleTypeId,
       vehicleType: input.vehicleType,
       isActive: isActive,
       isArchived: false,

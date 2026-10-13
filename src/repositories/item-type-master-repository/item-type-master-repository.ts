@@ -11,4 +11,5 @@ export abstract class ItemTypeMasterRepository {
   public abstract Create(record: Partial<IItemTypeMaster>): Promise<IItemTypeMaster>;
   public abstract Update(record: Partial<IItemTypeMaster>): Promise<IItemTypeMaster | undefined>;
   public abstract delete(id: string): Promise<IItemTypeMaster | null>;
+  public abstract getNextItemTypeId(): Promise<string>;
 }

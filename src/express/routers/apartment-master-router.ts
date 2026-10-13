@@ -36,6 +36,24 @@ apartmentMasterRouter.get("/mobile/apartment-master", async (request, response, 
   }
 });
 
+apartmentMasterRouter.get("/mobile/apartment-master/:id", async (request, response, next) => {
+  try {
+    const { id } = request.params;
+
+    const result = await ApartmentMaster.find({ 
+      projectCode: id,
+      isActive: true, 
+      isArchived: false 
+    })
+    .select("id apartmentId apartmentNo buildingOrTower floor projectCode")
+    .lean();
+
+    return response.json({ success: true, data: result });
+  } catch (error: unknown) {
+    next(error);
+  }
+});
+
 apartmentMasterRouter.get("/:id", async (request, response, next) => {
   try {
     const input = combineRequestInput(request);

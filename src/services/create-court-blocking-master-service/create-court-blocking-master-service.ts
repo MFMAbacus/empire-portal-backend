@@ -51,9 +51,22 @@ export class CreateCourtBlockingMasterService {
     // CREATE LOGIC (Jab Naya Record banega tab DB ki primary key 'AM' prefix se generate hogi)
     const primaryKeyId = input.id || Generator.id("CB");
 
+   
+    let finalBlockId = input.blockId;
+    
+    if (!finalBlockId || finalBlockId.trim() === "") {
+      const nextSeqNumber = await this._courtBlockingMasterRepository.getNextBlockId();
+      const numericPart = typeof nextSeqNumber === "number" 
+        ? nextSeqNumber 
+        : parseInt(nextSeqNumber.replace(/\D/g, "")) || 1;
+
+      const paddedNumber = String(numericPart).padStart(6, "0");
+      finalBlockId = `CB-${paddedNumber}`;
+    }
+
     const courtBlockingModel = CourtBlockingMasterModel.make({
-      id: primaryKeyId,              // Database Primary Key -> AM-12345
-      blockId: input.blockId, // User Input -> APT-101
+      id: primaryKeyId,
+      blockId: finalBlockId,
       courtId: input.courtId,
       blockDate: input.blockDate,
       startTime: input.startTime,

@@ -24,10 +24,15 @@ menuMasterRouter.get("/", async (request, response, next) => {
 });
 
 // MOBILE API
-menuMasterRouter.get("/mobile/menu-master", async (request, response, next) => {
+menuMasterRouter.get("/mobile/menu-master/:id", async (request, response, next) => {
   try {
-    const input = combineRequestInput(request);
-    const result = await MenuMaster.find({ isActive: true, isArchived: false })
+    const { id } = request.params;
+
+    const result = await MenuMaster.find({ 
+      venueId: id,
+      isActive: true, 
+      isArchived: false 
+    })
       .select(
         "id menuId menuName price menuItem venueId ",
       )

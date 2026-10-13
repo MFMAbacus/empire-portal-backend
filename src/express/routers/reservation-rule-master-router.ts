@@ -24,10 +24,15 @@ reservationRuleMasterRouter.get("/", async (request, response, next) => {
 });
 
 // MOBILE API
-reservationRuleMasterRouter.get("/mobile/reservation-slot", async (request, response, next) => {
+reservationRuleMasterRouter.get("/mobile/reservation-slot/:id", async (request, response, next) => {
   try {
-      const input = combineRequestInput(request);
-      const result = await ReservationRuleMaster.find({ isActive: true, isArchived: false })
+      const { id } = request.params;
+
+      const result = await ReservationRuleMaster.find({ 
+        venueId: id,
+        isActive: true, 
+        isArchived: false 
+      })
         .select(
           "id slotDuration maxGuest lateArrival venueId ",
         )

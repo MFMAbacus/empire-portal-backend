@@ -45,12 +45,23 @@ export class CreateGuardAccountMappingMasterService {
     }
 
     // CREATE LOGIC (Naya record banne par Primary Key 'RM' prefix se generate hogi)
-    const primaryKeyId = input.id || Generator.id("RM");
-    const guardAccountId = input.guardAccountId || Generator.id("RES");
+    const primaryKeyId = input.id || Generator.id("GAM");
+
+    let finalGuardAccountId = input.guardAccountId;
+    
+    if (!finalGuardAccountId || finalGuardAccountId.trim() === "") {
+      const nextSeqNumber = await this._guardAccountMappingMasterRepository.getNextGuardAccountId();
+      const numericPart = typeof nextSeqNumber === "number" 
+        ? nextSeqNumber 
+        : parseInt(nextSeqNumber.replace(/\D/g, "")) || 1;
+
+      const paddedNumber = String(numericPart).padStart(6, "0");
+      finalGuardAccountId = `GA-${paddedNumber}`;
+    }
 
     const guardAccountMappingModel = GuardAccountMappingMasterModel.make({
       id: primaryKeyId,
-      guardAccountId: guardAccountId,
+      guardAccountId: finalGuardAccountId,
       guardUserId: input.guardUserId,
       deviceId: input.deviceId,
       gateId: input.gateId,

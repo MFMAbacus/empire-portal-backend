@@ -11,4 +11,5 @@ export abstract class MovementTypeMasterRepository {
   public abstract Create(record: Partial<IMovementTypeMaster>): Promise<IMovementTypeMaster>;
   public abstract Update(record: Partial<IMovementTypeMaster>): Promise<IMovementTypeMaster | undefined>;
   public abstract delete(id: string): Promise<IMovementTypeMaster | null>;
+  public abstract getNextMovementTypeId(): Promise<string>;
 }

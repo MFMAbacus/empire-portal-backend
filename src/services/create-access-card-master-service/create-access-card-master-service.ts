@@ -62,11 +62,21 @@ export class CreateAccessCardMasterService {
 
     // CREATE LOGIC (Naya record banne par Primary Key 'ACM' prefix se generate hogi)
     const primaryKeyId = input.id || Generator.id("ACM");
-    const cardId = input.cardId || Generator.id("CARD");
 
+     let finalCardId = input.cardId;
+    
+    if (!finalCardId || finalCardId.trim() === "") {
+      const nextSeqNumber = await this._accessCardMasterRepository.getNextAccessCardId();
+      const numericPart = typeof nextSeqNumber === "number" 
+        ? nextSeqNumber 
+        : parseInt(nextSeqNumber.replace(/\D/g, "")) || 1;
+
+      const paddedNumber = String(numericPart).padStart(6, "0");
+      finalCardId = `AC-${paddedNumber}`;
+    }
     const accessCardModel = AccessCardMasterModel.make({
       id: primaryKeyId,
-      cardId: cardId,
+      cardId: finalCardId,
       serialNo: input.serialNo,
       maskedSerial: maskedSerial || "",
       issueDate: input.issueDate,

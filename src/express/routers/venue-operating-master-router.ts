@@ -14,10 +14,15 @@ import VenueOperatingMaster from "@/schemas/venue-operating-master-schema";
 export const venueOperatingMasterRouter = express.Router();
 
 // MOBILE API
-venueOperatingMasterRouter.get("/mobile/venue-operating", async (request, response, next) => {
+venueOperatingMasterRouter.get("/mobile/venue-operating/:id", async (request, response, next) => {
   try {
-    const input = combineRequestInput(request);
-    const result = await VenueOperatingMaster.find({ isActive: true, isArchived: false })
+    const { id } = request.params;
+
+    const result = await VenueOperatingMaster.find({ 
+      venueId: id,
+      isActive: true, 
+      isArchived: false 
+    })
       .select(
         "id venueId day openTime closeTime isClosed ",
       )

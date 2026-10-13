@@ -41,4 +41,20 @@ export class ApartmentMasterRepositoryDb
   public async delete(id: string): Promise<IApartmentMaster | null> {
     return await super.delete(id);
   }
+  
+  public async getNextApartmentId(): Promise<string> {
+    const lastRecord = await ApartmentMaster.findOne({
+      apartmentId: { $regex: /^APT-/ }
+    })
+      .sort({ createdAt: -1, _id: -1 })
+      .lean();
+    let nextNumber = 1;
+    if (lastRecord && lastRecord.apartmentId) {
+      const parts = lastRecord.apartmentId.split("-");
+      if (parts.length === 2 && !isNaN(Number(parts[1]))) {
+        nextNumber = Number(parts[1]) + 1;
+      }
+    }
+    return `APT-${String(nextNumber).padStart(6, "0")}`;
+  }
 }

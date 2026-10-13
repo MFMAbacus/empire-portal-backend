@@ -11,4 +11,5 @@ export abstract class ApartmentMasterRepository {
   public abstract Create(record: Partial<IApartmentMaster>): Promise<IApartmentMaster>;
   public abstract Update(record: Partial<IApartmentMaster>): Promise<IApartmentMaster | undefined>;
   public abstract delete(id: string): Promise<IApartmentMaster | null>;
+  public abstract getNextApartmentId(): Promise<string>;
 }

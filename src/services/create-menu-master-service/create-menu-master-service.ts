@@ -47,9 +47,22 @@ export class CreateMenuMasterService {
     // CREATE LOGIC (Jab Naya Record banega tab DB ki primary key 'MM' prefix se generate hogi)
     const primaryKeyId = input.id || Generator.id("MM");
 
+    
+    let finalMenuId = input.menuId;
+    
+    if (!finalMenuId || finalMenuId.trim() === "") {
+      const nextSeqNumber = await this._menuMasterRepository.getNextMenuId();
+      const numericPart = typeof nextSeqNumber === "number" 
+        ? nextSeqNumber 
+        : parseInt(nextSeqNumber.replace(/\D/g, "")) || 1;
+
+      const paddedNumber = String(numericPart).padStart(6, "0");
+      finalMenuId = `MNU-${paddedNumber}`;
+    }
+
     const menuModel = MenuMasterModel.make({
-      id: primaryKeyId,              // Database Primary Key -> <MM>-12345
-      menuId: input.menuId, // User Input -> APT-101
+      id: primaryKeyId,
+      menuId: finalMenuId,
       venueId: input.venueId,
       menuName: input.menuName,
       price: input.price,
