@@ -3,7 +3,7 @@ import express from "express";
 import { presentResult } from "@/express/present-result";
 import { combineRequestInput } from "@/express/combine-request-input";
 
-import { getMovementTypeMasterService } from "@/services/get-movement-type-master-service";
+import { getMobileMovementTypeMasterService, getMovementTypeMasterService } from "@/services/get-movement-type-master-service";
 import { getSingleMovementTypeMasterService } from "@/services/get-single-movement-type-master-service";
 import { createMovementTypeMasterService } from "@/services/create-movement-type-master-service";
 import { updateMovementTypeMasterService } from "@/services/update-movement-type-master-service";
@@ -24,16 +24,14 @@ movementTypeMasterRouter.get("/", async (request, response, next) => {
 });
 
 // MOBILE API
-movementTypeMasterRouter.get("/mobile/movement-type", async (request, response, next) => {
+movementTypeMasterRouter.get("/mobile/movement-types", async (request, response, next) => {
   try {
-      const input = combineRequestInput(request);
-      const result = await MovementTypeMaster.find({ isActive: true, isArchived: false })
-      .select("id movementTypeId type ")
-      .lean();
-      return response.json({ success: true, data: result });
-    } catch (error: unknown) {
-      next(error);
-    }
+    const input = combineRequestInput(request);
+    const result = await getMobileMovementTypeMasterService.execute(input);
+    return presentResult(result, response);
+  } catch (error: unknown) {
+    next(error);
+  }
 });
 
 movementTypeMasterRouter.get("/:id", async (request, response, next) => {

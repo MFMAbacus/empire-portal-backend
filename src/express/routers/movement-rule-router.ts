@@ -3,7 +3,7 @@ import express from "express";
 import { presentResult } from "@/express/present-result";
 import { combineRequestInput } from "@/express/combine-request-input";
 
-import { getMovementRuleMasterService } from "@/services/get-movement-rule-master-service";
+import { getMobileMovementRuleMasterService, getMovementRuleMasterService } from "@/services/get-movement-rule-master-service";
 import { getSingleMovementRuleMasterService } from "@/services/get-single-movement-rule-master-service";
 import { createMovementRuleMasterService } from "@/services/create-movement-rule-master-service";
 import { updateMovementRuleMasterService } from "@/services/update-movement-rule-master-service";
@@ -24,22 +24,16 @@ movementRuleMasterRouter.get("/", async (request, response, next) => {
 });
 
 // MOBILE API
-movementRuleMasterRouter.get("/mobile/movement-rule/:id", async (request, response, next) => {
+movementRuleMasterRouter.get("/mobile/movement-rule", async (request, response, next) => {
   try {
-    const { id } = request.params;
-
-    const result = await MovementRuleMaster.find({ 
-      projectCode: id,
-      isActive: true, 
-      isArchived: false 
-    })
-    .select("id ruleId projectCode startTime endTime blockedDays ")
-    .lean();
-      return response.json({ success: true, data: result });
-    } catch (error: unknown) {
-      next(error);
-    }
+    const input = combineRequestInput(request);
+    const result = await getMobileMovementRuleMasterService.execute(input);
+    return presentResult(result, response);
+  } catch (error: unknown) {
+    next(error);
+  }
 });
+
 
 movementRuleMasterRouter.get("/:id", async (request, response, next) => {
   try {

@@ -9,7 +9,7 @@ import { createProjectVenueMasterService } from "@/services/create-project-venue
 import { updateProjectVenueMasterService } from "@/services/update-project-venue-master-service";
 
 import { deleteProjectVenueMasterService } from "@/services/delete-project-venue-master-service";
-import ProjectVenueMaster from "@/schemas/project-venue-master-schema";
+import { getMobileProjectVenueMasterService } from "@/services/get-project-venue-master-service";
 
 export const projectVenueMasterRouter = express.Router();
 
@@ -24,21 +24,11 @@ projectVenueMasterRouter.get("/", async (request, response, next) => {
 });
 
 // MOBILE API
-projectVenueMasterRouter.get("/mobile/project-venue/:projectCode/:venueId", async (request, response, next) => {
+projectVenueMasterRouter.get("/mobile/project-venue", async (request, response, next) => {
   try {
-    const { projectCode, venueId } = request.params;
-
-    const result = await ProjectVenueMaster.find({ 
-      projectCode: projectCode,
-      venueId: venueId,
-      isActive: true, 
-      isArchived: false 
-    })
-      .select(
-        "id venueId projectCode isAccess ",
-      )
-      .lean();
-    return response.json({ success: true, data: result });
+    const input = combineRequestInput(request);
+    const result = await getMobileProjectVenueMasterService.execute(input);
+    return presentResult(result, response);
   } catch (error: unknown) {
     next(error);
   }

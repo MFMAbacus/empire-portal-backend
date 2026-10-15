@@ -39,6 +39,7 @@ export class DeActivateCustomerService {
 
     plainCustomerRecord.isActive = false;
     plainCustomerRecord.isInvited = false;
+    plainCustomerRecord.isResident = false;
     plainCustomerRecord.username = "";
 
     await this._customerRepository.Update(plainCustomerRecord);

@@ -109,6 +109,7 @@ export class UpdateCustomerService {
     if (customerModel.hasChanged("phoneNumber")) {
       customerModel.set("isInvited", false);
       customerModel.set("isActive", false);
+      customerModel.set("isResident", false);
       customerModel.set("username", "");
     }
     // if (!validationBag.hasError("email") && customerModel.hasChanged("email")) {

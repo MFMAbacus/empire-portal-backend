@@ -3,7 +3,7 @@ import mongoose, { Schema, Document } from "mongoose";
 export interface IQRScanLogMaster extends Document {
   id: string;
   guestAccessId: string;
-  requestNo: string;
+  requestId: string;
   qrCode: string;
   gateId?: string;
   gateName?: string;
@@ -16,8 +16,8 @@ export interface IQRScanLogMaster extends Document {
 const QRScanLogMasterSchema: Schema = new Schema(
   {
     id: { type: String, required: true, unique: true },
-    guestAccessId: { type: String, required: true },
-    requestNo: { type: String, required: true },
+    guestAccessId: { type: String, required: false, default: "" },
+    requestId: { type: String, required: false, default: "" },
     qrCode: { type: String, required: true },
     gateId: { type: String, required: false },
     gateName: { type: String, required: false },

@@ -3,7 +3,7 @@ import express from "express";
 import { presentResult } from "@/express/present-result";
 import { combineRequestInput } from "@/express/combine-request-input";
 
-import { getCourtMasterService } from "@/services/get-court-master-service";
+import { getCourtMasterService, getMobileCourtMasterService } from "@/services/get-court-master-service";
 import { getSingleCourtMasterService } from "@/services/get-single-court-master-service";
 import { createCourtMasterService } from "@/services/create-court-master-service";
 import { updateCourtMasterService } from "@/services/update-court-master-service";
@@ -24,20 +24,11 @@ courtMasterRouter.get("/", async (request, response, next) => {
 });
 
 // MOBILE API
-courtMasterRouter.get("/mobile/court-master/:id", async (request, response, next) => {
+courtMasterRouter.get("/mobile/court-master", async (request, response, next) => {
   try {
-    const { id } = request.params;
-
-    const result = await CourtMaster.find({ 
-      projectCode: id,
-      isActive: true, 
-      isArchived: false 
-    })
-      .select(
-        "id courtId courtName courtType location projectCode ",
-      )
-      .lean();
-    return response.json({ success: true, data: result });
+    const input = combineRequestInput(request);
+    const result = await getMobileCourtMasterService.execute(input);
+    return presentResult(result, response);
   } catch (error: unknown) {
     next(error);
   }

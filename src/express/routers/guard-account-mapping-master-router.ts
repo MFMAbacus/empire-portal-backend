@@ -3,7 +3,7 @@ import express from "express";
 import { presentResult } from "@/express/present-result";
 import { combineRequestInput } from "@/express/combine-request-input";
 
-import { getGuardAccountMappingMasterService } from "@/services/get-guard-account-mapping-master-service";
+import { getGuardAccountMappingMasterService, getMobileGuardAccountMappingMasterService } from "@/services/get-guard-account-mapping-master-service";
 import { getSingleGuardAccountMappingMasterService } from "@/services/get-single-guard-account-mapping-master-service";
 import { createGuardAccountMappingMasterService } from "@/services/create-guard-account-mapping-master-service";
 import { updateGuardAccountMappingMasterService } from "@/services/update-guard-account-mapping-master-service";
@@ -24,13 +24,11 @@ guardAccountMappingMasterRouter.get("/", async (request, response, next) => {
 });
 
 // MOBILE API
-guardAccountMappingMasterRouter.get("/mobile/guard-account", async (request, response, next) => {
+guardAccountMappingMasterRouter.get("/mobile/guard-account-mapping-master", async (request, response, next) => {
   try {
     const input = combineRequestInput(request);
-    const result = await GuardAccountMappingMaster.find({ isActive: true, isArchived: false })
-    .select("id guardAccountId guardUserId deviceId gateId projectCode ")
-    .lean();
-    return response.json({ success: true, data: result });
+    const result = await getMobileGuardAccountMappingMasterService.execute(input);
+    return presentResult(result, response);
   } catch (error: unknown) {
     next(error);
   }

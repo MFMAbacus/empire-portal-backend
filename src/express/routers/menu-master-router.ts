@@ -9,7 +9,7 @@ import { createMenuMasterService } from "@/services/create-menu-master-service";
 import { updateMenuMasterService } from "@/services/update-menu-master-service";
 
 import { deleteMenuMasterService } from "@/services/delete-menu-master-service";
-import MenuMaster from "@/schemas/menu-master-schema";
+import { getMobileMenuMasterService } from "@/services/get-menu-master-service";
 
 export const menuMasterRouter = express.Router();
 
@@ -24,20 +24,11 @@ menuMasterRouter.get("/", async (request, response, next) => {
 });
 
 // MOBILE API
-menuMasterRouter.get("/mobile/menu-master/:id", async (request, response, next) => {
+menuMasterRouter.get("/mobile/menu-master", async (request, response, next) => {
   try {
-    const { id } = request.params;
-
-    const result = await MenuMaster.find({ 
-      venueId: id,
-      isActive: true, 
-      isArchived: false 
-    })
-      .select(
-        "id menuId menuName price menuItem venueId ",
-      )
-      .lean();
-    return response.json({ success: true, data: result });
+    const input = combineRequestInput(request);
+    const result = await getMobileMenuMasterService.execute(input);
+    return presentResult(result, response);
   } catch (error: unknown) {
     next(error);
   }

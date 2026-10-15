@@ -3,13 +3,12 @@ import express from "express";
 import { presentResult } from "@/express/present-result";
 import { combineRequestInput } from "@/express/combine-request-input";
 
-import { getResidentMasterService } from "@/services/get-resident-master-service";
+import { getMobileResidentMasterService, getResidentMasterService } from "@/services/get-resident-master-service";
 import { getSingleResidentMasterService } from "@/services/get-single-resident-master-service";
 import { createResidentMasterService } from "@/services/create-resident-master-service";
 import { updateResidentMasterService } from "@/services/update-resident-master-service";
 
 import { deleteResidentMasterService } from "@/services/delete-resident-master-service";
-import ResidentMaster from "@/schemas/resident-master-schema";
 
 export const residentMasterRouter = express.Router();
 
@@ -28,29 +27,8 @@ residentMasterRouter.get("/", async (request, response, next) => {
 residentMasterRouter.get("/mobile/resident-master", async (request, response, next) => {
   try {
     const input = combineRequestInput(request);
-    const result = await ResidentMaster.find({ isActive: true, isArchived: false })
-    .select("id residentId name email mobileNo loginUserId residentType apartmentId projectCode")
-    .lean();
-    return response.json({ success: true, data: result });
-  } catch (error: unknown) {
-    next(error);
-  }
-});
-
-residentMasterRouter.get("/mobile/resident-master/:projectCode/:apartmentId", async (request, response, next) => {
-  try {
-    const { projectCode, apartmentId } = request.params; // URL se projectCode aur apartmentId mil jayega
-
-    const result = await ResidentMaster.find({ 
-      projectCode: projectCode,
-      apartmentId: apartmentId,
-      isActive: true, 
-      isArchived: false 
-    })
-    .select("id residentId name email mobileNo loginUserId residentType apartmentId projectCode")
-    .lean();
-
-    return response.json({ success: true, data: result });
+    const result = await getMobileResidentMasterService.execute(input);
+    return presentResult(result, response);
   } catch (error: unknown) {
     next(error);
   }

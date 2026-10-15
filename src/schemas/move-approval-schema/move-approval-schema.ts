@@ -2,7 +2,7 @@ import mongoose, { Document, Schema } from "mongoose";
 
 export interface IMoveApproval extends Document {
   id: string;
-  requestNo: string;
+  requestId: string;
   residentId: string;
   apartmentId: string;
   projectCode: string;
@@ -24,16 +24,16 @@ export interface IMoveApproval extends Document {
 const MoveApprovalSchema = new Schema(
   {
     id: { type: String, required: true, unique: true },
-    requestNo: { type: String, required: true, unique: true },
-    residentId: { type: String, required: true },
-    apartmentId: { type: String, required: true },
-    projectCode: { type: String, required: true },
-    movementTypeId: { type: String, required: true },
-    itemTypeId: { type: String, required: true },
-    itemImage: { type: String, required: false },
-    movementDate: { type: String, required: true },
-    movementTime: { type: String, required: true },
-    comments: { type: String, required: false },
+    requestId: { type: String, required: true, default: "" },
+    residentId: { type: String, required: true, default: "" },
+    apartmentId: { type: String, required: true, default: "" },
+    projectCode: { type: String, required: false, default: "" },
+    movementTypeId: { type: String, required: true, default: "" },
+    itemTypeId: { type: String, required: true, default: "" },
+    itemImage: { type: String, required: true, default: "" },
+    movementDate: { type: String, required: true, default: "" },
+    movementTime: { type: String, required: true, default: "" },
+    comments: { type: String, required: false, default: "" },
     isRuleValid: { type: Boolean, default: false },
     ruleValidationNotes: { type: String, default: "" },
     status: { type: String, default: "Pending" },

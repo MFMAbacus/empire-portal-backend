@@ -125,6 +125,7 @@ export class GetStatsService {
 
     let totalCustomers = 0;
     let activeCustomers = 0;
+    let residentCustomers = 0;
     let invitedCustomers = 0;
     let notInvitedCustomers = 0;
     let blockedCustomers = 0;
@@ -137,6 +138,10 @@ export class GetStatsService {
       }
       if (customer.isActive) {
         activeCustomers++;
+        continue;
+      }
+      if (customer.isResident) {
+        residentCustomers++;
         continue;
       }
       if (customer.isInvited) {
@@ -247,6 +252,7 @@ export class GetStatsService {
 
       totalCustomers,
       activeCustomers,
+      residentCustomers,
       invitedCustomers,
       notInvitedCustomers,
       blockedCustomers,
@@ -284,6 +290,7 @@ export type Counts = {
 
   totalCustomers: number;
   activeCustomers: number;
+  residentCustomers: number;
   invitedCustomers: number;
   notInvitedCustomers: number;
   blockedCustomers: number;

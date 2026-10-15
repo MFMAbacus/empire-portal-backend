@@ -2,7 +2,7 @@ import mongoose, { Document, Schema } from "mongoose";
 
 export interface IGuestAccess extends Document {
   id: string;
-  requestNo: string;
+  requestId: string;
   residentId: string;
   apartmentId: string;
   projectCode: string;
@@ -31,7 +31,7 @@ export interface IGuestAccess extends Document {
 const GuestAccessSchema = new Schema(
   {
     id: { type: String, required: true, unique: true },
-    requestNo: { type: String, required: true },
+    requestId: { type: String, required: true },
     residentId: { type: String, required: true },
     apartmentId: { type: String, required: true },
     projectCode: { type: String, required: true },

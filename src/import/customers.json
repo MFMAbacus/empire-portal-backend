@@ -31,6 +31,7 @@
     "username": "customer-001",
     "password": "5849f59d87c388e64709628ef7e87d125553fcae58b4bf225843ffb09c71a387",
     "isInvited": true,
+    "isResident": false,
     "isActive": true,
     "isBlocked": false,
     "profilePicture": null

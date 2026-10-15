@@ -13,13 +13,13 @@ async function generateSequentialRequestNo(): Promise<string> {
   const count = await GuestAccess.countDocuments();
   let maxSeq = count;
 
-  const records = await GuestAccess.find({ requestNo: /^GA-\d+$/ })
-    .select("requestNo")
+  const records = await GuestAccess.find({ requestId: /^GA-\d+$/ })
+    .select("requestId")
     .lean();
 
   for (const r of records) {
-    if (r.requestNo) {
-      const match = r.requestNo.match(/^GA-(\d+)$/);
+    if (r.requestId) {
+      const match = r.requestId.match(/^GA-(\d+)$/);
       if (match) {
         const num = parseInt(match[1], 10);
         if (num > maxSeq) maxSeq = num;
@@ -41,11 +41,14 @@ export class CreateGuestAccessService {
 
   public async execute(input: any): Promise<Result<IGuestAccess, Failure>> {
     try {
-      const payload: any = { ...input };
+      // 1. Destructure and filter out sessionId, sessionRecord, and any other unwanted fields
+      const { sessionId, sessionRecord, ...cleanInput } = input;
+
+      const payload: any = { ...cleanInput };
       
       const seqNo = await generateSequentialRequestNo();
       payload.id = seqNo;
-      payload.requestNo = seqNo;
+      payload.requestId = seqNo;
 
       // Support both projectCode and projectId from request
       if (!payload.projectCode && payload.projectId) {

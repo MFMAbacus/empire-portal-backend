@@ -24,6 +24,7 @@ export type CustomerRecord = {
   username: string;
   password: string;
   isInvited: boolean;
+  isResident: boolean;
   isActive: boolean;
   isBlocked: boolean;
   profilePicture: string | null;
@@ -47,6 +48,7 @@ export type RowType = {
   is_invited: boolean;
   is_active: boolean;
   is_blocked: boolean;
+  is_resident: boolean;
   profile_picture: string | null;
 };
 

@@ -9,7 +9,7 @@ import { createCourtTimeMasterService } from "@/services/create-court-time-maste
 import { updateCourtTimeMasterService } from "@/services/update-court-time-master-service";
 
 import { deleteCourtTimeMasterService } from "@/services/delete-court-time-master-service";
-import CourtTimeMaster from "@/schemas/court-time-master-schema";
+import { getMobileCourtTimeMasterService } from "@/services/get-court-time-master-service";
 
 export const courtTimeMasterRouter = express.Router();
 
@@ -24,25 +24,15 @@ courtTimeMasterRouter.get("/", async (request, response, next) => {
 });
 
 // MOBILE API
-courtTimeMasterRouter.get(
-  "/mobile/court-time/:id",
-  async (request, response, next) => {
-    try {
-      const { id } = request.params;
-
-      const result = await CourtTimeMaster.find({ 
-        courtId: id,
-        isActive: true, 
-        isArchived: false 
-      })
-        .select("id courtId startTime endTime slotDuration ")
-        .lean();
-      return response.json({ success: true, data: result });
-    } catch (error: unknown) {
-      next(error);
-    }
-  },
-);
+courtTimeMasterRouter.get("/mobile/court-time", async (request, response, next) => {
+  try {
+    const input = combineRequestInput(request);
+    const result = await getMobileCourtTimeMasterService.execute(input);
+    return presentResult(result, response);
+  } catch (error: unknown) {
+    next(error);
+  }
+});
 
 
 courtTimeMasterRouter.get("/:id", async (request, response, next) => {

@@ -3,7 +3,7 @@ import express from "express";
 import { presentResult } from "@/express/present-result";
 import { combineRequestInput } from "@/express/combine-request-input";
 
-import { getQRConfigurationMasterService } from "@/services/get-qr-configuration-master-service";
+import { getMobileQRConfigurationMasterService, getQRConfigurationMasterService } from "@/services/get-qr-configuration-master-service";
 import { getSingleQRConfigurationMasterService } from "@/services/get-single-qr-configuration-master-service";
 import { createQRConfigurationMasterService } from "@/services/create-qr-configuration-master-service";
 import { updateQRConfigurationMasterService } from "@/services/update-qr-configuration-master-service";
@@ -15,15 +15,14 @@ export const qrConfigurationMasterRouter = express.Router();
 // MOBILE API
 qrConfigurationMasterRouter.get("/mobile/qr-detail", async (request, response, next) => {
   try {
-      const input = combineRequestInput(request);
-      const result = await QRConfigurationMaster.find({ isActive: true, isArchived: false })
-      .select("id qrConfigId expiryHours isOneTimeScan isGateValidation isPdfRequired ")
-      .lean();
-      return response.json({ success: true, data: result });
-    } catch (error: unknown) {
-      next(error);
-    }
+    const input = combineRequestInput(request);
+    const result = await getMobileQRConfigurationMasterService.execute(input);
+    return presentResult(result, response);
+  } catch (error: unknown) {
+    next(error);
+  }
 });
+
 
 qrConfigurationMasterRouter.get("/", async (request, response, next) => {
   try {

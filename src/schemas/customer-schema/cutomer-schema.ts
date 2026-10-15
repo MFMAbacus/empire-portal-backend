@@ -20,6 +20,7 @@ export interface ICustomerRecord extends Document {
   username: string;
   password: string;
   isInvited: boolean;
+  isResident: boolean;
   isActive: boolean;
   isBlocked: boolean;
   profilePicture: string | null;
@@ -48,6 +49,7 @@ const CustomerSchema = new Schema<ICustomerRecord>({
   username: { type: String, required: true },
   password: { type: String, required: true },
   isInvited: { type: Boolean, required: true },
+  isResident: { type: Boolean, required: true },
   isActive: { type: Boolean, required: true },
   isBlocked: { type: Boolean, required: true },
   profilePicture: { type: String, default: null },

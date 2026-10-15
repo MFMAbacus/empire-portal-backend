@@ -3,7 +3,7 @@ import express from "express";
 import { presentResult } from "@/express/present-result";
 import { combineRequestInput } from "@/express/combine-request-input";
 
-import { getItemTypeMasterService } from "@/services/get-item-type-master-service";
+import { getItemTypeMasterService, getMobileItemTypeMasterService } from "@/services/get-item-type-master-service";
 import { getSingleItemTypeMasterService } from "@/services/get-single-item-type-master-service";
 import { createItemTypeMasterService } from "@/services/create-item-type-master-service";
 import { updateItemTypeMasterService } from "@/services/update-item-type-master-service";
@@ -26,15 +26,14 @@ itemTypeMasterRouter.get("/", async (request, response, next) => {
 // MOBILE API
 itemTypeMasterRouter.get("/mobile/item-type", async (request, response, next) => {
   try {
-      const input = combineRequestInput(request);
-      const result = await ItemTypeMaster.find({ isActive: true, isArchived: false })
-      .select("id itemTypeId itemTypeName description ")
-      .lean();
-      return response.json({ success: true, data: result });
-    } catch (error: unknown) {
-      next(error);
-    }
+    const input = combineRequestInput(request);
+    const result = await getMobileItemTypeMasterService.execute(input);
+    return presentResult(result, response);
+  } catch (error: unknown) {
+    next(error);
+  }
 });
+
 
 
 itemTypeMasterRouter.get("/:id", async (request, response, next) => {

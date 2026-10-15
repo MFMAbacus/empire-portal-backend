@@ -3,7 +3,7 @@ import express from "express";
 import { presentResult } from "@/express/present-result";
 import { combineRequestInput } from "@/express/combine-request-input";
 
-import { getVenueOperatingMasterService } from "@/services/get-venue-operating-master-service";
+import { getMobileVenueOperatingMasterService, getVenueOperatingMasterService } from "@/services/get-venue-operating-master-service";
 import { getSingleVenueOperatingMasterService } from "@/services/get-single-venue-operating-master-service";
 import { createVenueOperatingMasterService } from "@/services/create-venue-operating-master-service";
 import { updateVenueOperatingMasterService } from "@/services/update-venue-operating-master-service";
@@ -14,20 +14,11 @@ import VenueOperatingMaster from "@/schemas/venue-operating-master-schema";
 export const venueOperatingMasterRouter = express.Router();
 
 // MOBILE API
-venueOperatingMasterRouter.get("/mobile/venue-operating/:id", async (request, response, next) => {
+venueOperatingMasterRouter.get("/mobile/venue-operating", async (request, response, next) => {
   try {
-    const { id } = request.params;
-
-    const result = await VenueOperatingMaster.find({ 
-      venueId: id,
-      isActive: true, 
-      isArchived: false 
-    })
-      .select(
-        "id venueId day openTime closeTime isClosed ",
-      )
-      .lean();
-    return response.json({ success: true, data: result });
+    const input = combineRequestInput(request);
+    const result = await getMobileVenueOperatingMasterService.execute(input);
+    return presentResult(result, response);
   } catch (error: unknown) {
     next(error);
   }

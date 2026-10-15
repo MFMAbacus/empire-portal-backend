@@ -2,6 +2,7 @@ import { AccessMediatorService } from "@/services/access-mediator-service";
 import { GetItemTypeMasterService } from "./get-item-type-master-service";
 import { getSessionService } from "@/services/get-session-service";
 import { itemTypeMasterRepository } from "@/repositories/item-type-master-repository";
+import { GetMobileItemTypeMasterService } from "./get-mobile-item-type-master-service";
 
 export const getItemTypeMasterService = new AccessMediatorService({
   getSessionService,
@@ -10,5 +11,10 @@ export const getItemTypeMasterService = new AccessMediatorService({
   }),
   roles: ["manager", "staff", "customer"],
 });
-
+export const getMobileItemTypeMasterService = new AccessMediatorService({
+  getSessionService,
+  service: new GetMobileItemTypeMasterService(),
+  roles: ["manager", "staff", "customer"],
+});
 export * from "./get-item-type-master-service";
+export * from "./get-mobile-item-type-master-service";

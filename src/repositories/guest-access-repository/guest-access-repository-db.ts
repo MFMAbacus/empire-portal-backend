@@ -45,7 +45,7 @@ export class GuestAccessRepositoryDb
   }
 
   /**
-   * Update by _id (ObjectId), id (custom string), or requestNo.
+   * Update by _id (ObjectId), id (custom string), or requestId.
    * Works even if the document was created before the `id` field was added.
    */
   public async Update(
@@ -54,7 +54,7 @@ export class GuestAccessRepositoryDb
     const idCandidates = [
       (record as any)._id,
       record.id,
-      (record as any).requestNo
+      (record as any).requestId
     ].filter(Boolean);
 
     if (idCandidates.length === 0) return undefined;
@@ -63,7 +63,7 @@ export class GuestAccessRepositoryDb
     for (const cand of idCandidates) {
       const str = String(cand);
       conditions.push({ id: str });
-      conditions.push({ requestNo: str });
+      conditions.push({ requestId: str });
       if (mongoose.Types.ObjectId.isValid(str) && str.length === 24) {
         conditions.push({ _id: new mongoose.Types.ObjectId(str) });
       }
@@ -77,7 +77,7 @@ export class GuestAccessRepositoryDb
       "approverId", "qrCode", "qrStatus", "qrExpiryDate", "expiryHours",
       "isOneTimeScan", "isGateValidation", "isPdfRequired", "checkInDateTime",
       "vehiclePlateNo", "vehicleType", "visitDate", "startTime",
-      "duration", "comments", "active", "requestNo", "residentId",
+      "duration", "comments", "active", "requestId", "residentId",
       "apartmentId", "projectCode",
     ];
 
@@ -105,13 +105,13 @@ export class GuestAccessRepositoryDb
   }
 
   /**
-   * Build a robust MongoDB filter matching _id, custom `id`, or `requestNo`
+   * Build a robust MongoDB filter matching _id, custom `id`, or `requestId`
    */
   private _buildFilter(id: string): any {
     if (!id) return {};
     const conditions: any[] = [
       { id: id },
-      { requestNo: id }
+      { requestId: id }
     ];
     if (mongoose.Types.ObjectId.isValid(id) && id.length === 24) {
       conditions.push({ _id: new mongoose.Types.ObjectId(id) });

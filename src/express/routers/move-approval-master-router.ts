@@ -90,7 +90,8 @@ moveApprovalMasterRouter.get("/lookup/statuses", async (req, res, next) => {
 // Resident's own move requests (for mobile My Requests screen)
 moveApprovalMasterRouter.get("/my-requests/:residentId", async (req, res, next) => {
   try {
-    const result = await getMoveApprovalService.execute({ residentId: req.params.residentId });
+    const input = combineRequestInput(req);
+    const result = await getMoveApprovalService.execute({ ...input, residentId: req.params.residentId });
     return presentResult(result, res);
   } catch (error) {
     next(error);
@@ -101,14 +102,36 @@ moveApprovalMasterRouter.get("/my-requests/:residentId", async (req, res, next) 
 // MAIN CRUD ROUTES
 // ================================================================
 
+// Helper to extract session id and request inputs
+const extractSessionAndInput = (req: express.Request) => {
+  const input = combineRequestInput(req);
+  const sessionId = (
+    input.sessionId ||
+    req.headers["session-id"] ||
+    req.headers.authorization?.replace(/^Bearer\s+/i, "") ||
+    req.body?.sessionId
+  ) as string;
+  return { input, sessionId };
+};
+
 // GET ALL — Web Portal list view (enriched)
-// Supports ?residentId=xxx and ?isArchived=1
+// Supports ?requestId=xxx, ?residentId=xxx and ?isArchived=1
 moveApprovalMasterRouter.get("/", async (req, res, next) => {
   try {
+    const { input, sessionId } = extractSessionAndInput(req);
+    const payload = { ...input, ...(sessionId ? { sessionId } : {}) };
+
+    // If requestId or id is passed in query, e.g. /move-approval-request?requestId=MA-000009
+    if (payload.requestId || (payload.id && typeof payload.id === "string")) {
+      const singleResult = await getSingleMoveApprovalService.execute(payload);
+      return presentResult(singleResult, res);
+    }
+
     const result = await getMoveApprovalService.execute({
-      isArchived: req.query.isArchived === "1",
-      residentId: req.query.residentId as string | undefined,
-      userId: req.query.userId as string | undefined,
+      ...payload,
+      isArchived: payload.isArchived === "1" || payload.isArchived === true,
+      residentId: payload.residentId as string | undefined,
+      userId: payload.userId as string | undefined,
     });
     return presentResult(result, res);
   } catch (error) {
@@ -121,19 +144,30 @@ moveApprovalMasterRouter.get("/", async (req, res, next) => {
 // Also routes notification to PropertyManagementApprovalMaster mapped approver
 moveApprovalMasterRouter.post("/", async (req, res, next) => {
   try {
-    const input = combineRequestInput(req);
-    const payload = req.body && Object.keys(req.body).length > 0 ? req.body : input;
+    const { input, sessionId } = extractSessionAndInput(req);
+    const payload = {
+      ...input,
+      ...(req.body && Object.keys(req.body).length > 0 ? req.body : {}),
+      ...(sessionId ? { sessionId } : {}),
+    };
 
     const result = await createMoveApprovalService.execute(payload);
 
     if (!result.hasFailed()) {
       const created = result.getValue() as any;
       // Fetch the property approver for this project so the mobile/portal knows who will approve
-      const approvers = await PropertyManagementApprovalMaster.find({
-        projectCode: created.projectCode,
-        isActive: true,
-        isArchived: false,
-      }).lean();
+      let approvers: any[] = [];
+      try {
+        if (created.projectCode) {
+          approvers = await PropertyManagementApprovalMaster.find({
+            projectCode: created.projectCode,
+            isActive: true,
+            isArchived: false,
+          }).lean();
+        }
+      } catch (err) {
+        console.error("Error fetching approvers:", err);
+      }
 
       return res.status(200).json({
         success: true,
@@ -154,10 +188,18 @@ moveApprovalMasterRouter.post("/", async (req, res, next) => {
   }
 });
 
-// GET SINGLE — by id or requestNo (must be after lookup routes)
-moveApprovalMasterRouter.get("/:id", async (req, res, next) => {
+// GET SINGLE — by id or requestId (supports both /:requestId and ?requestId=)
+moveApprovalMasterRouter.get("/:requestId", async (req, res, next) => {
   try {
-    const result = await getSingleMoveApprovalService.execute(req.params.id);
+    const { input, sessionId } = extractSessionAndInput(req);
+    const id = req.params.requestId || input.requestId || input.id;
+    const payload = {
+      ...input,
+      id,
+      requestId: id,
+      ...(sessionId ? { sessionId } : {}),
+    };
+    const result = await getSingleMoveApprovalService.execute(payload);
     return presentResult(result, res);
   } catch (error) {
     next(error);
@@ -319,7 +361,7 @@ moveApprovalMasterRouter.patch("/:id/reject", async (req, res, next) => {
 // Helper
 // ================================================================
 function buildFilter(id: string) {
-  const conditions: any[] = [{ id }, { requestNo: id }];
+  const conditions: any[] = [{ id }, { requestId: id }];
   if (mongoose.Types.ObjectId.isValid(id) && id.length === 24) {
     conditions.push({ _id: new mongoose.Types.ObjectId(id) });
   }

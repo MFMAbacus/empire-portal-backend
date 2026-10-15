@@ -14,8 +14,10 @@ export class GetSingleMoveApprovalService {
     this._moveApprovalRepository = props.moveApprovalRepository;
   }
 
-  public async execute(id: string): Promise<Result<IMoveApproval, Failure>> {
+  public async execute(input: any): Promise<Result<IMoveApproval, Failure>> {
     try {
+      const id = typeof input === "string" ? input : (input?.requestId || input?.id);
+      if (!id) return Result.fail(Failure.badRequest("requestId is required"));
       const record = await this._moveApprovalRepository.get(id);
       if (!record) {
         return Result.fail(Failure.notFound());

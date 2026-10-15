@@ -3,7 +3,7 @@ import express from "express";
 import { presentResult } from "@/express/present-result";
 import { combineRequestInput } from "@/express/combine-request-input";
 
-import { getGateMasterService } from "@/services/get-gate-master-service";
+import { getGateMasterService, getMobileGateMasterService } from "@/services/get-gate-master-service";
 import { getSingleGateMasterService } from "@/services/get-single-gate-master-service";
 import { createGateMasterService } from "@/services/create-gate-master-service";
 import { updateGateMasterService } from "@/services/update-gate-master-service";
@@ -28,27 +28,8 @@ gateMasterRouter.get("/", async (request, response, next) => {
 gateMasterRouter.get("/mobile/gate-master", async (request, response, next) => {
   try {
     const input = combineRequestInput(request);
-    const result = await GateMaster.find({ isActive: true, isArchived: false })
-    .select("id gateId gateName location projectCode ")
-    .lean();
-    return response.json({ success: true, data: result });
-  } catch (error: unknown) {
-    next(error);
-  }
-});
-gateMasterRouter.get("/mobile/gate-master/:id", async (request, response, next) => {
-  try {
-    const { id } = request.params; // Isme projectCode aayega
-
-    const result = await GateMaster.find({ 
-      projectCode: id,
-      isActive: true, 
-      isArchived: false 
-    })
-    .select("id gateId gateName location projectCode")
-    .lean();
-
-    return response.json({ success: true, data: result });
+    const result = await getMobileGateMasterService.execute(input);
+    return presentResult(result, response);
   } catch (error: unknown) {
     next(error);
   }

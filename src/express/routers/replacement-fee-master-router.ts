@@ -3,7 +3,7 @@ import express from "express";
 import { presentResult } from "@/express/present-result";
 import { combineRequestInput } from "@/express/combine-request-input";
 
-import { getReplacementFeeMasterService } from "@/services/get-replacement-fee-master-service";
+import { getMobileReplacementFeeMasterService, getReplacementFeeMasterService } from "@/services/get-replacement-fee-master-service";
 import { getSingleReplacementFeeMasterService } from "@/services/get-single-replacement-fee-master-service";
 import { createReplacementFeeMasterService } from "@/services/create-replacement-fee-master-service";
 import { updateReplacementFeeMasterService } from "@/services/update-replacement-fee-master-service";
@@ -23,21 +23,14 @@ replacementFeeMasterRouter.get("/", async (request, response, next) => {
 });
 
 // MOBILE API
-replacementFeeMasterRouter.get("/mobile/replacement-fee/:id", async (request, response, next) => {
+replacementFeeMasterRouter.get("/mobile/replacement-fee", async (request, response, next) => {
   try {
-    const { id } = request.params; // Isme projectCode aayega
-
-    const result = await ReplacementFeeMaster.find({ 
-      projectCode: id, // projectCode se filter karein
-      isActive: true, 
-      isArchived: false 
-    })
-    .select("id feeId feeAmount currency tax projectCode ")
-    .lean();
-          return response.json({ success: true, data: result });
-        } catch (error: unknown) {
-          next(error);
-        }
+    const input = combineRequestInput(request);
+    const result = await getMobileReplacementFeeMasterService.execute(input);
+    return presentResult(result, response);
+  } catch (error: unknown) {
+    next(error);
+  }
 });
 
 replacementFeeMasterRouter.get("/:id", async (request, response, next) => {

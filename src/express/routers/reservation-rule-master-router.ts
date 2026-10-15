@@ -9,7 +9,7 @@ import { createReservationRuleMasterService } from "@/services/create-reservatio
 import { updateReservationRuleMasterService } from "@/services/update-reservation-rule-master-service";
 
 import { deleteReservationRuleMasterService } from "@/services/delete-reservation-rule-master-service";
-import ReservationRuleMaster from "@/schemas/reservation-rule-master-schema";
+import { getMobileReservationRuleMasterService } from "@/services/get-reservation-rule-master-service";
 
 export const reservationRuleMasterRouter = express.Router();
 
@@ -24,23 +24,14 @@ reservationRuleMasterRouter.get("/", async (request, response, next) => {
 });
 
 // MOBILE API
-reservationRuleMasterRouter.get("/mobile/reservation-slot/:id", async (request, response, next) => {
+reservationRuleMasterRouter.get("/mobile/reservation-rules", async (request, response, next) => {
   try {
-      const { id } = request.params;
-
-      const result = await ReservationRuleMaster.find({ 
-        venueId: id,
-        isActive: true, 
-        isArchived: false 
-      })
-        .select(
-          "id slotDuration maxGuest lateArrival venueId ",
-        )
-        .lean();
-      return response.json({ success: true, data: result });
-    } catch (error: unknown) {
-      next(error);
-    }
+    const input = combineRequestInput(request);
+    const result = await getMobileReservationRuleMasterService.execute(input);
+    return presentResult(result, response);
+  } catch (error: unknown) {
+    next(error);
+  }
 });
 
 

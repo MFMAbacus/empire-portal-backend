@@ -9,7 +9,7 @@ import { createApartmentMasterService } from "@/services/create-apartment-master
 import { updateApartmentMasterService } from "@/services/update-apartment-master-service";
 
 import { deleteApartmentMasterService } from "@/services/delete-apartment-master-service";
-import ApartmentMaster from "@/schemas/apartment-master-schema";
+import { getMobileApartmentMasterService } from "@/services/get-apartment-master-service";
 
 export const apartmentMasterRouter = express.Router();
 
@@ -27,28 +27,8 @@ apartmentMasterRouter.get("/", async (request, response, next) => {
 apartmentMasterRouter.get("/mobile/apartment-master", async (request, response, next) => {
   try {
     const input = combineRequestInput(request);
-    const result = await ApartmentMaster.find({ isActive: true, isArchived: false })
-    .select("id apartmentId apartmentNo buildingOrTower floor projectCode")
-    .lean();
-    return response.json({ success: true, data: result });
-  } catch (error: unknown) {
-    next(error);
-  }
-});
-
-apartmentMasterRouter.get("/mobile/apartment-master/:id", async (request, response, next) => {
-  try {
-    const { id } = request.params;
-
-    const result = await ApartmentMaster.find({ 
-      projectCode: id,
-      isActive: true, 
-      isArchived: false 
-    })
-    .select("id apartmentId apartmentNo buildingOrTower floor projectCode")
-    .lean();
-
-    return response.json({ success: true, data: result });
+    const result = await getMobileApartmentMasterService.execute(input);
+    return presentResult(result, response);
   } catch (error: unknown) {
     next(error);
   }

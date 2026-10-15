@@ -9,7 +9,7 @@ import { createCourtBookingMasterService } from "@/services/create-court-booking
 import { updateCourtBookingMasterService } from "@/services/update-court-booking-master-service";
 
 import { deleteCourtBookingMasterService } from "@/services/delete-court-booking-master-service";
-import CourtBookingMaster from "@/schemas/court-booking-master-schema";
+import { getMobileCourtBookingMasterService } from "@/services/get-court-booking-master-service";
 
 export const courtBookingMasterRouter = express.Router();
 
@@ -23,21 +23,14 @@ courtBookingMasterRouter.get("/", async (request, response, next) => {
   }
 });
 //Mobile APi
-courtBookingMasterRouter.get("/mobile/court-booking/:id", async (request, response, next) => {
+courtBookingMasterRouter.get("/mobile/court-booking", async (request, response, next) => {
   try {
-    const { id } = request.params;
-
-    const result = await CourtBookingMaster.find({ 
-      projectCode: id,
-      isActive: true, 
-      isArchived: false 
-    })
-    .select("id maxBooking advanceBooking projectCode pendingSlot ",)
-    .lean();
-    return response.json({ success: true, data: result });
-    } catch (error: unknown) {
-      next(error);
-    }
+    const input = combineRequestInput(request);
+    const result = await getMobileCourtBookingMasterService.execute(input);
+    return presentResult(result, response);
+  } catch (error: unknown) {
+    next(error);
+  }
 });
 
 courtBookingMasterRouter.get("/:id", async (request, response, next) => {

@@ -3,7 +3,7 @@ import express from "express";
 import { presentResult } from "@/express/present-result";
 import { combineRequestInput } from "@/express/combine-request-input";
 
-import { getCardReplacementReasonMasterService } from "@/services/get-card-replacement-reason-master-service";
+import { getCardReplacementReasonMasterService, getMobileCardReplacementReasonMasterService } from "@/services/get-card-replacement-reason-master-service";
 import { getSingleCardReplacementReasonMasterService } from "@/services/get-single-card-replacement-reason-master-service";
 import { createCardReplacementReasonMasterService } from "@/services/create-card-replacement-reason-master-service";
 import { updateCardReplacementReasonMasterService } from "@/services/update-card-replacement-reason-master-service";
@@ -27,13 +27,11 @@ cardReplacementReasonMasterRouter.get("/", async (request, response, next) => {
 cardReplacementReasonMasterRouter.get("/mobile/card-replacement", async (request, response, next) => {
   try {
     const input = combineRequestInput(request);
-    const result = await CardReplacementReasonMaster.find({ isActive: true, isArchived: false })
-    .select("id reasonId reasonName chargesApplicable ")
-    .lean();
-    return response.json({ success: true, data: result });
-    } catch (error: unknown) {
-      next(error);
-    }
+    const result = await getMobileCardReplacementReasonMasterService.execute(input);
+    return presentResult(result, response);
+  } catch (error: unknown) {
+    next(error);
+  }
 });
 
 cardReplacementReasonMasterRouter.get("/:id", async (request, response, next) => {

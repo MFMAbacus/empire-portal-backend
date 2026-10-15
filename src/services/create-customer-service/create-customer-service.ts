@@ -58,6 +58,7 @@ export class CreateCustomerService {
       password: Hash.make(Generator.shortToken()),
       isInvited: false,
       isActive: false,
+      isResident: false,
       isBlocked: false,
       profilePicture: null,
     });

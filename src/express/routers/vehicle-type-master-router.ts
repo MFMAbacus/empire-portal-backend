@@ -3,7 +3,7 @@ import express from "express";
 import { presentResult } from "@/express/present-result";
 import { combineRequestInput } from "@/express/combine-request-input";
 
-import { getVehicleTypeMasterService } from "@/services/get-vehicle-type-master-service";
+import { getMobileVehicleTypeMasterService, getVehicleTypeMasterService } from "@/services/get-vehicle-type-master-service";
 import { getSingleVehicleTypeMasterService } from "@/services/get-single-vehicle-type-master-service";
 import { createVehicleTypeMasterService } from "@/services/create-vehicle-type-master-service";
 import { updateVehicleTypeMasterService } from "@/services/update-vehicle-type-master-service";
@@ -29,14 +29,12 @@ vehicleTypeMasterRouter.get("/", async (request, response, next) => {
 // MOBILE API
 vehicleTypeMasterRouter.get("/mobile/vehicle-types", async (request, response, next) => {
   try {
-      const input = combineRequestInput(request);
-      const result = await VehicleTypeMaster.find({ isActive: true, isArchived: false })
-      .select("id vehicleTypeId vehicleType ")
-      .lean();
-      return response.json({ success: true, data: result });
-    } catch (error: unknown) {
-      next(error);
-    }
+    const input = combineRequestInput(request);
+    const result = await getMobileVehicleTypeMasterService.execute(input);
+    return presentResult(result, response);
+  } catch (error: unknown) {
+    next(error);
+  }
 });
 
 // GET SINGLE BY ID (Web Portal)

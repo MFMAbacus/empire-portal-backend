@@ -25,6 +25,7 @@ export class CustomerModel extends Model {
       username: record.username,
       password: record.password,
       isInvited: record.isInvited,
+      isResident: record.isResident,
       isActive: record.isActive,
       isBlocked: record.isBlocked,
       profilePicture: record.profilePicture,
@@ -36,6 +37,9 @@ export class CustomerModel extends Model {
     this.set("isInvited", true);
   }
 
+  public resident(): void {
+    this.set("isResident", true);
+  }
   public block(): void {
     this.set("isBlocked", true);
   }
@@ -115,6 +119,10 @@ export class CustomerModel extends Model {
     validationBag.set(
       "isActive",
       Validation.make(this.get("isActive")).mandatory().boolean().getRule()
+    );
+    validationBag.set(
+      "isResident",
+      Validation.make(this.get("isResident")).mandatory().boolean().getRule()
     );
     validationBag.set(
       "isBlocked",

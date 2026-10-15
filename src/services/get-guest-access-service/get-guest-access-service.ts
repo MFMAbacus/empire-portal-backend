@@ -151,7 +151,7 @@ export class GetGuestAccessService {
             isExpired: r.qrExpiryDate ? new Date() > new Date(r.qrExpiryDate) : false,
           },
           isExpired: r.qrExpiryDate ? new Date() > new Date(r.qrExpiryDate) : false,
-          // pdfPassUrl: r.isPdfRequired ? `/guest-approval-master/pdf/${r.id || r.requestNo}` : null,
+          // pdfPassUrl: r.isPdfRequired ? `/guest-approval-master/pdf/${r.id || r.requestId}` : null,
           availableGates: projectGates,
           approvalRouting,
           securityCoordinators,

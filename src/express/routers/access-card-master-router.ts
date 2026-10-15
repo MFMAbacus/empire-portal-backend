@@ -3,7 +3,7 @@ import express from "express";
 import { presentResult } from "@/express/present-result";
 import { combineRequestInput } from "@/express/combine-request-input";
 
-import { getAccessCardMasterService } from "@/services/get-access-card-master-service";
+import { getAccessCardMasterService, getMobileAccessCardMasterService } from "@/services/get-access-card-master-service";
 import { getSingleAccessCardMasterService } from "@/services/get-single-access-card-master-service";
 import { createAccessCardMasterService } from "@/services/create-access-card-master-service";
 import { updateAccessCardMasterService } from "@/services/update-access-card-master-service";
@@ -24,15 +24,11 @@ accessCardMasterRouter.get("/", async (request, response, next) => {
 });
 
 // MOBILE API
-accessCardMasterRouter.get("/mobile/access-card/:residentId", async (request, response, next) => {
+accessCardMasterRouter.get("/mobile/access-card", async (request, response, next) => {
   try {
-    const { residentId } = request.params; 
-
-    const result = await AccessCardMaster.find({ residentId: residentId,isActive: true, isArchived: false })
-    .select("id cardId serialNo maskedSerial issueDate cardStatus projectCode apartmentId residentId")
-    .lean();
-
-    return response.status(200).json({ success: true, data: result });
+    const input = combineRequestInput(request);
+    const result = await getMobileAccessCardMasterService.execute(input);
+    return presentResult(result, response);
   } catch (error: unknown) {
     next(error);
   }

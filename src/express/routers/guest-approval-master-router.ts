@@ -6,6 +6,7 @@ import { getGuestAccessService } from "@/services/get-guest-access-service";
 import { getSingleGuestAccessService } from "@/services/get-single-guest-access-service";
 import { createGuestAccessService } from "@/services/create-guest-access-service";
 import { updateGuestAccessService } from "@/services/update-guest-access-service";
+import { getSessionService } from "@/services/get-session-service";
 
 import GateMaster from "@/schemas/gate-master-schema/gate-master-schema";
 import CommonStatusMaster from "@/schemas/common-status-master-schema/common-status-master-schema";
@@ -124,7 +125,8 @@ guestApprovalMasterRouter.get("/lookup/approval-routing/:projectCode", async (re
 // Resident's own requests (for mobile My Requests screen)
 guestApprovalMasterRouter.get("/my-requests/:residentId", async (request, response, next) => {
   try {
-    const result = await getGuestAccessService.execute({ residentId: request.params.residentId });
+    const input = combineRequestInput(request);
+    const result = await getGuestAccessService.execute({ ...input, residentId: request.params.residentId });
     return presentResult(result, response);
   } catch (error: unknown) {
     next(error);
@@ -134,15 +136,28 @@ guestApprovalMasterRouter.get("/my-requests/:residentId", async (request, respon
 // Safe Mongoose Query Filter helper to prevent CastError on non-24-char hex strings
 function buildQueryFilter(idStr: string) {
   if (mongoose.Types.ObjectId.isValid(idStr) && idStr.length === 24) {
-    return { $or: [{ _id: new mongoose.Types.ObjectId(idStr) }, { id: idStr }, { requestNo: idStr }] };
+    return { $or: [{ _id: new mongoose.Types.ObjectId(idStr) }, { id: idStr }, { requestId: idStr }] };
   }
-  return { $or: [{ id: idStr }, { requestNo: idStr }] };
+  return { $or: [{ id: idStr }, { requestId: idStr }] };
 }
 
 // MOBILE API: Fetch QR Code Details & Config for an Approved Request
-guestApprovalMasterRouter.get("/mobile/qr-details/:id", async (request, response, next) => {
+const handleQrDetails = async (request: express.Request, response: express.Response, next: express.NextFunction) => {
   try {
-    const id = request.params.id;
+    const input = combineRequestInput(request);
+    const sessionId = input.sessionId as string;
+    if (!sessionId) {
+      return response.status(401).json({ success: false, code: "unauthorized", message: "Session ID is required" });
+    }
+    const sessionResult = await getSessionService.execute({ sessionId });
+    if (sessionResult.hasFailed()) {
+      return presentResult(sessionResult, response);
+    }
+
+    const id = (input.requestId || input.id || request.params.requestId) as string;
+    if (!id) {
+      return response.status(400).json({ success: false, code: "bad-request", error: "requestId is required" });
+    }
     const filter = buildQueryFilter(id);
     const record: any = await GuestAccess.findOne(filter).lean();
 
@@ -161,23 +176,27 @@ guestApprovalMasterRouter.get("/mobile/qr-details/:id", async (request, response
 
     const isExpired = record.qrExpiryDate ? new Date() > new Date(record.qrExpiryDate) : false;
 
-    const qrText = encodeURIComponent(record.qrCode || `QR-${record.id}`);
+    // Clean up qrCode by removing .png if it exists at the end
+    const rawQrCode = record.qrCode || `QR-${record.id}`;
+    const cleanQrCode = rawQrCode.replace(/\.png$/i, "");
+
+    const qrText = encodeURIComponent(cleanQrCode);
     const qrImageUrl = `https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=${qrText}`;
 
     return response.json({
       success: true,
       data: {
         id: record.id,
-        requestNo: record.requestNo,
+        requestId: record.requestId,
         residentId: record.residentId,
         apartmentId: record.apartmentId,
         projectCode: record.projectCode,
         assignedGateId: record.assignedGateId,
         status: record.status,
         approvalStatus: record.approvalStatus,
-        qrCode: record.qrCode,
+        qrCode: cleanQrCode, // Returns without .png
         qrImageUrl: qrImageUrl,
-        qrImageDownloadUrl: `/guest-approval-request/qr-image/${record.id || record.requestNo}`,
+        qrImageDownloadUrl: `/guest-approval-request/qr-image?requestId=${record.requestId || record.id}&sessionId=${sessionId}`,
         qrStatus: isExpired ? "Expired" : record.qrStatus,
         qrExpiryDate: record.qrExpiryDate,
         isExpired,
@@ -187,18 +206,33 @@ guestApprovalMasterRouter.get("/mobile/qr-details/:id", async (request, response
           isGateValidation: record.isGateValidation ?? true,
           isPdfRequired: record.isPdfRequired ?? false,
         },
-        // pdfPassUrl: record.isPdfRequired ? `/guest-approval-master/pdf/${record.id}` : null,
       },
     });
   } catch (error: unknown) {
     next(error);
   }
-});
+};
 
-// PNG QR Code Image Download API (No installation required)
-guestApprovalMasterRouter.get("/qr-image/:id", async (request, response, next) => {
+guestApprovalMasterRouter.get("/mobile/qr-details", handleQrDetails);
+guestApprovalMasterRouter.get("/mobile/qr-details/:requestId", handleQrDetails);
+
+// PNG QR Code Image Download API
+const handleQrImage = async (request: express.Request, response: express.Response, next: express.NextFunction) => {
   try {
-    const id = request.params.id;
+    const input = combineRequestInput(request);
+    const sessionId = input.sessionId as string;
+    if (!sessionId) {
+      return response.status(401).json({ success: false, code: "unauthorized", message: "Session ID is required" });
+    }
+    const sessionResult = await getSessionService.execute({ sessionId });
+    if (sessionResult.hasFailed()) {
+      return presentResult(sessionResult, response);
+    }
+
+    const id = (input.requestId || input.id || request.params.id) as string;
+    if (!id) {
+      return response.status(400).json({ success: false, code: "bad-request", error: "requestId is required" });
+    }
     const filter = buildQueryFilter(id);
     const record: any = await GuestAccess.findOne(filter).lean();
 
@@ -209,7 +243,7 @@ guestApprovalMasterRouter.get("/qr-image/:id", async (request, response, next) =
     const qrText = encodeURIComponent(record.qrCode);
     const qrServerUrl = `https://api.qrserver.com/v1/create-qr-code/?size=400x400&data=${qrText}`;
 
-    response.setHeader("Content-Disposition", `attachment; filename="qr-code-${record.requestNo || record.id}.png"`);
+    response.setHeader("Content-Disposition", `attachment; filename="qr-code-${record.requestId || record.id}.png"`);
     response.setHeader("Content-Type", "image/png");
 
     const axios = (await import("axios")).default;
@@ -218,33 +252,49 @@ guestApprovalMasterRouter.get("/qr-image/:id", async (request, response, next) =
   } catch (error: unknown) {
     next(error);
   }
-});
+};
+
+guestApprovalMasterRouter.get("/qr-image", handleQrImage);
+guestApprovalMasterRouter.get("/qr-image/:id", handleQrImage);
 
 // Core QR Code Verification and Scan History Logger
-async function processQrScan(qrCodeInput: string, gateId?: string, gateName?: string) {
-  if (!qrCodeInput) {
-    return { statusCode: 400, data: { success: false, code: "bad-request", error: "QR Code is required" } };
+async function processQrScan(rawQrCodeInput: string, gateId?: string, gateName?: string) {
+  if (!rawQrCodeInput) {
+    return { statusCode: 200, data: { success: true, code: "bad-request", message: "QR Code is required" } };
   }
 
-  // Search by qrCode, requestNo, or id
+  // Strip .png extension if present so it works with or without it
+  const qrCodeInput = rawQrCodeInput.replace(/\.png$/i, "");
+
+  // Search by qrCode, requestId, or id (supporting both clean and .png variations in DB if needed)
   const record: any = await GuestAccess.findOne({
-    $or: [{ qrCode: qrCodeInput }, { requestNo: qrCodeInput }, { id: qrCodeInput }],
+    $or: [
+      { qrCode: qrCodeInput },
+      { qrCode: `${qrCodeInput}.png` },
+      { requestId: qrCodeInput },
+      { id: qrCodeInput },
+    ],
   });
 
   if (!record) {
-    return { statusCode: 404, data: { success: false, code: "not-found", error: "Invalid QR Code — Record not found" } };
+    return { statusCode: 200, data: { success: true, code: "not-found", message: "Invalid QR Code — Record not found" } };
   }
 
   const now = new Date();
   const currentTotalAttempts = (await QRScanLogMaster.countDocuments({ qrCode: record.qrCode })) + 1;
   const previousVerifiedScans = await QRScanLogMaster.countDocuments({ qrCode: record.qrCode, status: "Verified" });
 
+  const safeGuestAccessId = (record.id || (record._id ? record._id.toString() : "") || "N/A").toString();
+  const safeRequestId = (record.requestId || record.id || (record._id ? record._id.toString() : "") || qrCodeInput || "N/A").toString();
+
   // 1. APPROVAL STATUS CHECK
-  if (record.approvalStatus !== "Approved" && record.status !== "Approved") {
+  const isMultiScanAllowed = record.isOneTimeScan === false && record.approvalStatus === "Used";
+
+  if ((record.approvalStatus !== "Approved" && record.status !== "Approved") && !isMultiScanAllowed) {
     await QRScanLogMaster.create({
       id: `SCAN-${Date.now()}-${Math.floor(Math.random() * 1000)}`,
-      guestAccessId: record.id || record._id,
-      requestNo: record.requestNo,
+      guestAccessId: safeGuestAccessId,
+      requestId: safeRequestId,
       qrCode: record.qrCode || qrCodeInput,
       gateId: gateId || record.assignedGateId,
       gateName: gateName || null,
@@ -255,11 +305,11 @@ async function processQrScan(qrCodeInput: string, gateId?: string, gateName?: st
     });
 
     return {
-      statusCode: 400,
+      statusCode: 200,
       data: {
-        success: false,
+        success: true,
         code: "not-approved",
-        error: `Access request status is '${record.approvalStatus || record.status}'. Only Approved requests can be scanned.`,
+        message: `Access request status is '${record.approvalStatus || record.status}'. Only Approved requests can be scanned.`,
       },
     };
   }
@@ -273,8 +323,8 @@ async function processQrScan(qrCodeInput: string, gateId?: string, gateName?: st
 
     await QRScanLogMaster.create({
       id: `SCAN-${Date.now()}-${Math.floor(Math.random() * 1000)}`,
-      guestAccessId: record.id || record._id,
-      requestNo: record.requestNo,
+      guestAccessId: safeGuestAccessId,
+      requestId: safeRequestId,
       qrCode: record.qrCode || qrCodeInput,
       gateId: gateId || record.assignedGateId,
       gateName: gateName || null,
@@ -285,11 +335,11 @@ async function processQrScan(qrCodeInput: string, gateId?: string, gateName?: st
     });
 
     return {
-      statusCode: 400,
+      statusCode: 200,
       data: {
-        success: false,
+        success: true,
         code: "qr-expired",
-        error: `QR Code expired at ${new Date(record.qrExpiryDate).toLocaleString()}`,
+        message: `QR Code expired at ${new Date(record.qrExpiryDate).toLocaleString()}`,
         status: "Expired",
         scanCount: currentTotalAttempts,
       },
@@ -300,8 +350,8 @@ async function processQrScan(qrCodeInput: string, gateId?: string, gateName?: st
   if (record.isGateValidation && record.assignedGateId && gateId && record.assignedGateId !== gateId) {
     await QRScanLogMaster.create({
       id: `SCAN-${Date.now()}-${Math.floor(Math.random() * 1000)}`,
-      guestAccessId: record.id || record._id,
-      requestNo: record.requestNo,
+      guestAccessId: safeGuestAccessId,
+      requestId: safeRequestId,
       qrCode: record.qrCode || qrCodeInput,
       gateId: gateId,
       gateName: gateName || null,
@@ -312,26 +362,26 @@ async function processQrScan(qrCodeInput: string, gateId?: string, gateName?: st
     });
 
     return {
-      statusCode: 400,
+      statusCode: 200,
       data: {
-        success: false,
+        success: true,
         code: "invalid-gate",
-        error: `Gate validation failed. QR Code is assigned to Gate '${record.assignedGateId}', but scanned at '${gateId}'.`,
+        message: `Gate validation failed. QR Code is assigned to Gate '${record.assignedGateId}', but scanned at '${gateId}'.`,
         scanCount: currentTotalAttempts,
       },
     };
   }
 
-  // 4. ONE-TIME SCAN CHECK
-  if (record.isOneTimeScan && (previousVerifiedScans >= 1 || record.qrStatus === "Used")) {
+  // 4. ONE-TIME SCAN CHECK (Only enforce if isOneTimeScan is true)
+  if (record.isOneTimeScan === true && (previousVerifiedScans >= 1 || record.qrStatus === "Used")) {
     const firstScan: any = await QRScanLogMaster.findOne({ qrCode: record.qrCode, status: "Verified" })
       .sort({ scannedAt: 1 })
       .lean();
 
     await QRScanLogMaster.create({
       id: `SCAN-${Date.now()}-${Math.floor(Math.random() * 1000)}`,
-      guestAccessId: record.id || record._id,
-      requestNo: record.requestNo,
+      guestAccessId: safeGuestAccessId,
+      requestId: safeRequestId,
       qrCode: record.qrCode || qrCodeInput,
       gateId: gateId || record.assignedGateId,
       gateName: gateName || null,
@@ -342,11 +392,11 @@ async function processQrScan(qrCodeInput: string, gateId?: string, gateName?: st
     });
 
     return {
-      statusCode: 400,
+      statusCode: 200,
       data: {
-        success: false,
+        success: true,
         code: "already-scanned",
-        error: `QR Code has already been scanned on ${firstScan ? new Date(firstScan.scannedAt).toLocaleString() : "previous attempt"}. (One-time scan limit reached)`,
+        message: `QR Code has already been scanned on ${firstScan ? new Date(firstScan.scannedAt).toLocaleString() : "previous attempt"}. (One-time scan limit reached)`,
         firstScannedAt: firstScan ? firstScan.scannedAt : record.checkInDateTime,
         totalScanAttempts: currentTotalAttempts,
         verifiedScans: previousVerifiedScans,
@@ -365,8 +415,8 @@ async function processQrScan(qrCodeInput: string, gateId?: string, gateName?: st
 
   await QRScanLogMaster.create({
     id: `SCAN-${Date.now()}-${Math.floor(Math.random() * 1000)}`,
-    guestAccessId: record.id || record._id,
-    requestNo: record.requestNo,
+    guestAccessId: safeGuestAccessId,
+    requestId: safeRequestId,
     qrCode: record.qrCode || qrCodeInput,
     gateId: gateId || record.assignedGateId,
     gateName: gateName || null,
@@ -389,7 +439,7 @@ async function processQrScan(qrCodeInput: string, gateId?: string, gateName?: st
       message: "QR Code Verified Successfully! Visitor Granted Access.",
       visitor: {
         id: record.id,
-        requestNo: record.requestNo,
+        requestId: record.requestId,
         residentName: (resident as any)?.name || record.residentId,
         apartmentNo: (apartment as any)?.apartmentNo || record.apartmentId,
         projectCode: record.projectCode,
@@ -409,7 +459,20 @@ async function processQrScan(qrCodeInput: string, gateId?: string, gateName?: st
 // GUARD MOBILE API: Scan QR Code (/mobile/scan-qr)
 guestApprovalMasterRouter.post("/mobile/scan-qr", async (request, response, next) => {
   try {
-    const { qrCode, gateId, gateName } = request.body || {};
+    const input = combineRequestInput(request);
+    const sessionId = input.sessionId as string;
+    if (!sessionId) {
+      return response.status(401).json({ success: false, code: "unauthorized", message: "Session ID is required" });
+    }
+    const sessionResult = await getSessionService.execute({ sessionId });
+    if (sessionResult.hasFailed()) {
+      return presentResult(sessionResult, response);
+    }
+
+    const qrCode = (input.qrCode || input.requestId || input.id) as string;
+    const gateId = input.gateId as string;
+    const gateName = input.gateName as string;
+
     const result = await processQrScan(qrCode, gateId, gateName);
     return response.status(result.statusCode).json(result.data);
   } catch (error: unknown) {
@@ -437,7 +500,7 @@ guestApprovalMasterRouter.get("/scan-history/:id", async (request, response, nex
 
     const queryKey = record?.qrCode || id;
     const logs = await QRScanLogMaster.find({
-      $or: [{ qrCode: queryKey }, { requestNo: queryKey }, { guestAccessId: queryKey }],
+      $or: [{ qrCode: queryKey }, { requestId: queryKey }, { guestAccessId: queryKey }],
     })
       .sort({ scannedAt: -1 })
       .lean();
@@ -445,7 +508,7 @@ guestApprovalMasterRouter.get("/scan-history/:id", async (request, response, nex
     return response.json({
       success: true,
       data: {
-        requestNo: record?.requestNo || id,
+        requestId: record?.requestId || id,
         totalScans: logs.length,
         logs,
       },
@@ -470,7 +533,7 @@ guestApprovalMasterRouter.get("/scan-history/:id", async (request, response, nex
 //       <!DOCTYPE html>
 //       <html>
 //       <head>
-//         <title>Visitor Pass - ${record.requestNo}</title>
+//         <title>Visitor Pass - ${record.requestId}</title>
 //         <style>
 //           body { font-family: sans-serif; padding: 30px; background: #f4f6f8; }
 //           .card { max-width: 450px; margin: auto; background: white; border-radius: 12px; padding: 24px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); border: 2px solid #3b82f6; }
@@ -484,7 +547,7 @@ guestApprovalMasterRouter.get("/scan-history/:id", async (request, response, nex
 //         <div class="card">
 //           <h2>EMPIRE WORLD VISITOR PASS</h2>
 //           <div class="qr">${record.qrCode || "QR-PASS"}</div>
-//           <div class="field"><span class="label">Request No:</span> ${record.requestNo}</div>
+//           <div class="field"><span class="label">Request No:</span> ${record.requestId}</div>
 //           <div class="field"><span class="label">Resident ID:</span> ${record.residentId}</div>
 //           <div class="field"><span class="label">Apartment:</span> ${record.apartmentId}</div>
 //           <div class="field"><span class="label">Project:</span> ${record.projectCode}</div>
@@ -509,10 +572,12 @@ guestApprovalMasterRouter.get("/scan-history/:id", async (request, response, nex
 // GET ALL — Web Portal Security Coordinator list view (fully enriched)
 guestApprovalMasterRouter.get("/", async (request, response, next) => {
   try {
+    const input = combineRequestInput(request);
     const result = await getGuestAccessService.execute({
-      isArchived: request.query?.isArchived === "1",
-      residentId: request.query?.residentId as string | undefined,
-      userId: request.query?.userId as string | undefined, // <--- Logged-in user ki ID yahan lein
+      ...input,
+      isArchived: input.isArchived === "1" || input.isArchived === true,
+      residentId: input.residentId as string | undefined,
+      userId: input.userId as string | undefined,
     });
     return presentResult(result, response);
   } catch (error: unknown) {
@@ -524,7 +589,7 @@ guestApprovalMasterRouter.get("/", async (request, response, next) => {
 guestApprovalMasterRouter.post("/", async (request, response, next) => {
   try {
     const input = combineRequestInput(request);
-    const payload = (request.body && Object.keys(request.body).length > 0) ? request.body : input;
+    const payload = (request.body && Object.keys(request.body).length > 0) ? { ...input, ...request.body } : input;
     const result = await createGuestAccessService.execute(payload);
     return presentResult(result, response);
   } catch (error: unknown) {
@@ -533,23 +598,25 @@ guestApprovalMasterRouter.post("/", async (request, response, next) => {
 });
 
 // GET SINGLE — by id (must be after all /lookup/* routes)
-guestApprovalMasterRouter.get("/:id", async (request, response, next) => {
+guestApprovalMasterRouter.get("/:requestId", async (request, response, next) => {
   try {
-    const result = await getSingleGuestAccessService.execute(request.params.id);
+    const input = combineRequestInput(request);
+    const result = await getSingleGuestAccessService.execute(input);
     return presentResult(result, response);
   } catch (error: unknown) {
     next(error);
   }
 });
 
-// PATCH /:id — Main update route used by Web Portal frontend (Approval / Rejection)
-guestApprovalMasterRouter.patch("/:id", async (request, response, next) => {
+// PATCH /:requestId — Main update route used by Web Portal frontend (Approval / Rejection)
+guestApprovalMasterRouter.patch("/:requestId", async (request, response, next) => {
   try {
-    const id = request.params.id;
+    const id = request.params.requestId;
     const input = combineRequestInput(request);
     const body = (request.body && Object.keys(request.body).length > 0) ? request.body : input;
 
     const payload: any = {
+      ...input,
       ...body,
       id,
       _id: body._id || id,
@@ -580,10 +647,10 @@ guestApprovalMasterRouter.patch("/:id", async (request, response, next) => {
   }
 });
 
-// PATCH /:id/approve — Convenience approval route for Web Portal / Mobile
-guestApprovalMasterRouter.patch("/:id/approve", async (request, response, next) => {
+// PATCH /:requestId/approve — Convenience approval route for Web Portal / Mobile
+guestApprovalMasterRouter.patch("/:requestId/approve", async (request, response, next) => {
   try {
-    const id = request.params.id;
+    const id = request.params.requestId;
     const input = combineRequestInput(request);
     const body = (request.body && Object.keys(request.body).length > 0) ? request.body : input;
 
@@ -592,6 +659,7 @@ guestApprovalMasterRouter.patch("/:id/approve", async (request, response, next) 
     const qrExpiryDate = new Date(Date.now() + expiryHours * 3600 * 1000);
 
     const result = await updateGuestAccessService.execute({
+      ...input,
       id,
       _id: body._id || id,
       assignedGateId: body.assignedGateId,
@@ -612,14 +680,15 @@ guestApprovalMasterRouter.patch("/:id/approve", async (request, response, next) 
   }
 });
 
-// PATCH /:id/reject — Convenience rejection route
-guestApprovalMasterRouter.patch("/:id/reject", async (request, response, next) => {
+// PATCH /:requestId/reject — Convenience rejection route
+guestApprovalMasterRouter.patch("/:requestId/reject", async (request, response, next) => {
   try {
-    const id = request.params.id;
+    const id = request.params.requestId;
     const input = combineRequestInput(request);
     const body = (request.body && Object.keys(request.body).length > 0) ? request.body : input;
 
     const result = await updateGuestAccessService.execute({
+      ...input,
       id,
       _id: body._id || id,
       approverId: body.approverId,
@@ -634,11 +703,13 @@ guestApprovalMasterRouter.patch("/:id/reject", async (request, response, next) =
   }
 });
 
-// PATCH /:id/used — Guard scans QR to check in visitor
-guestApprovalMasterRouter.patch("/:id/used", async (request, response, next) => {
+// PATCH /:requestId/used — Guard scans QR to check in visitor
+guestApprovalMasterRouter.patch("/:requestId/used", async (request, response, next) => {
   try {
-    const id = request.params.id;
+    const id = request.params.requestId;
+    const input = combineRequestInput(request);
     const result = await updateGuestAccessService.execute({
+      ...input,
       id,
       status: "Used",
       approvalStatus: "Used",

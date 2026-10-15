@@ -3,7 +3,7 @@ import express from "express";
 import { presentResult } from "@/express/present-result";
 import { combineRequestInput } from "@/express/combine-request-input";
 
-import { getVenueMasterService } from "@/services/get-venue-master-service";
+import { getMobileVenueMasterService, getVenueMasterService } from "@/services/get-venue-master-service";
 import { getSingleVenueMasterService } from "@/services/get-single-venue-master-service";
 import { createVenueMasterService } from "@/services/create-venue-master-service";
 import { updateVenueMasterService } from "@/services/update-venue-master-service";
@@ -24,21 +24,14 @@ venueMasterRouter.get("/", async (request, response, next) => {
 });
 
 // MOBILE API
-venueMasterRouter.get("/mobile/venue-master/:id", async (request, response, next) => {
+venueMasterRouter.get("/mobile/venue-master", async (request, response, next) => {
   try {
-    const { id } = request.params; // Isme projectCode aayega
-
-    const result = await VenueMaster.find({ 
-      projectCode: id, // projectCode se filter karein
-      isActive: true, 
-      isArchived: false 
-    })
-    .select("id venueId venueName type projectCode location contact description imageOrLogo")
-    .lean();
-              return response.json({ success: true, data: result });
-            } catch (error: unknown) {
-              next(error);
-            }
+    const input = combineRequestInput(request);
+    const result = await getMobileVenueMasterService.execute(input);
+    return presentResult(result, response);
+  } catch (error: unknown) {
+    next(error);
+  }
 });
 
 venueMasterRouter.get("/:id", async (request, response, next) => {

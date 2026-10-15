@@ -22,8 +22,10 @@ export class GetSingleGuestAccessService {
     this._guestAccessRepository = props.guestAccessRepository;
   }
 
-  public async execute(id: string): Promise<Result<any, Failure>> {
+  public async execute(input: any): Promise<Result<any, Failure>> {
     try {
+      const id = typeof input === "string" ? input : input?.id;
+      if (!id) return Result.fail(Failure.badRequest());
       const record = await this._guestAccessRepository.get(id);
       if (!record) return Result.fail(Failure.notFound());
 
