@@ -7,6 +7,7 @@ import { getCourtApprovalService } from "@/services/get-court-approval-service";
 import { getSingleCourtApprovalService } from "@/services/get-single-court-approval-service";
 import { createCourtApprovalService } from "@/services/create-court-approval-service";
 import { updateCourtApprovalService } from "@/services/update-court-approval-service";
+import { getSessionService } from "@/services/get-session-service";
 
 import CourtMaster from "@/schemas/court-master-schema/court-master-schema";
 import ProjectCourtMaster from "@/schemas/project-court-master-schema/project-court-master-schema";
@@ -20,12 +21,24 @@ import CourtApproval from "@/schemas/court-approval-schema/court-approval-schema
 export const courtApprovalMasterRouter = express.Router();
 
 function buildFilter(id: string) {
-  const conditions: any[] = [{ id }, { reservationNo: id }, { requestNo: id }];
+  const conditions: any[] = [{ id }, { reservationNo: id }, { requestId: id }];
   if (mongoose.Types.ObjectId.isValid(id) && id.length === 24) {
     conditions.push({ _id: new mongoose.Types.ObjectId(id) });
   }
   return { $or: conditions };
 }
+
+// Helper to extract session id and request inputs
+const extractSessionAndInput = (req: express.Request) => {
+  const input = combineRequestInput(req);
+  const sessionId = (
+    input.sessionId ||
+    req.headers["session-id"] ||
+    req.headers.authorization?.replace(/^Bearer\s+/i, "") ||
+    req.body?.sessionId
+  ) as string;
+  return { input, sessionId };
+};
 
 // ================================================================
 // LOOKUP & MOBILE SPECIAL ROUTES
@@ -151,6 +164,16 @@ courtApprovalMasterRouter.get("/lookup/time-slots/:courtId", async (req, res, ne
 // 5. Calculate Available Time Slots with Full Validation against Operating Hours, Blocks & Project Rules
 courtApprovalMasterRouter.get("/lookup/available-slots", async (req, res, next) => {
   try {
+    const { input, sessionId } = extractSessionAndInput(req);
+
+    if (!sessionId) {
+      return res.status(401).json({ success: false, code: "unauthorized", message: "Session ID is required" });
+    }
+    const sessionResult = await getSessionService.execute({ sessionId });
+    if (sessionResult.hasFailed()) {
+      return presentResult(sessionResult, res);
+    }
+
     const { courtId, bookingDate, projectCode } = req.query as {
       courtId?: string;
       bookingDate?: string;
@@ -328,7 +351,8 @@ courtApprovalMasterRouter.get("/lookup/available-slots", async (req, res, next) 
 // 6. Resident's own court reservations (for Mobile App)
 courtApprovalMasterRouter.get("/my-requests/:residentId", async (req, res, next) => {
   try {
-    const result = await getCourtApprovalService.execute({ residentId: req.params.residentId });
+    const input = combineRequestInput(req);
+    const result = await getCourtApprovalService.execute({ ...input, residentId: req.params.residentId });
     return presentResult(result, res);
   } catch (error) {
     next(error);
@@ -361,7 +385,7 @@ courtApprovalMasterRouter.post("/block-slot", async (req, res, next) => {
     const blockingApproval = new CourtApproval({
       id: seqNo,
       reservationNo: seqNo,
-      requestNo: seqNo,
+      requestId: seqNo,
       courtId: courtId || "COURT-01",
       courtName: courtName || "Sports Court",
       projectCode: "PRJ-MAIN",
@@ -403,15 +427,32 @@ courtApprovalMasterRouter.post("/block-slot", async (req, res, next) => {
 // ================================================================
 
 // GET ALL — Web Portal list view (with approver filtering)
+// Supports ?requestId=xxx, ?reservationNo=xxx for single record lookup
 courtApprovalMasterRouter.get("/", async (req, res, next) => {
   try {
+    const { input, sessionId } = extractSessionAndInput(req);
+    const payload = { ...input, ...(sessionId ? { sessionId } : {}) };
+
+    const targetId = payload.requestId || payload.reservationNo || (payload.id && typeof payload.id === "string" ? payload.id : undefined);
+
+    if (targetId) {
+      const singleResult = await getSingleCourtApprovalService.execute({
+        ...payload,
+        requestId: targetId,
+        id: targetId,
+        reservationNo: targetId,
+      });
+      return presentResult(singleResult, res);
+    }
+
     const result = await getCourtApprovalService.execute({
-      isArchived: req.query.isArchived === "1",
-      residentId: req.query.residentId as string | undefined,
-      courtId: req.query.courtId as string | undefined,
-      projectCode: req.query.projectCode as string | undefined,
-      userId: req.query.userId as string | undefined,
-      status: req.query.status as string | undefined,
+      ...payload,
+      isArchived: payload.isArchived === "1" || payload.isArchived === true,
+      residentId: payload.residentId as string | undefined,
+      courtId: payload.courtId as string | undefined,
+      projectCode: payload.projectCode as string | undefined,
+      userId: payload.userId as string | undefined,
+      status: payload.status as string | undefined,
     });
     return presentResult(result, res);
   } catch (error) {
@@ -422,8 +463,12 @@ courtApprovalMasterRouter.get("/", async (req, res, next) => {
 // POST — Submit court reservation (Mobile App)
 courtApprovalMasterRouter.post("/", async (req, res, next) => {
   try {
-    const input = combineRequestInput(req);
-    const payload = req.body && Object.keys(req.body).length > 0 ? req.body : input;
+    const { input, sessionId } = extractSessionAndInput(req);
+    const payload = {
+      ...input,
+      ...(req.body && Object.keys(req.body).length > 0 ? req.body : {}),
+      ...(sessionId ? { sessionId } : {}),
+    };
 
     const result = await createCourtApprovalService.execute(payload);
 
@@ -454,10 +499,19 @@ courtApprovalMasterRouter.post("/", async (req, res, next) => {
   }
 });
 
-// GET SINGLE
-courtApprovalMasterRouter.get("/:id", async (req, res, next) => {
+// GET SINGLE — by id, reservationNo, or requestId
+courtApprovalMasterRouter.get("/:requestId", async (req, res, next) => {
   try {
-    const result = await getSingleCourtApprovalService.execute(req.params.id);
+    const { input, sessionId } = extractSessionAndInput(req);
+    const id = req.params.requestId || input.requestId || input.reservationNo || input.id;
+    const payload = {
+      ...input,
+      id,
+      requestId: id,
+      reservationNo: id,
+      ...(sessionId ? { sessionId } : {}),
+    };
+    const result = await getSingleCourtApprovalService.execute(payload);
     return presentResult(result, res);
   } catch (error) {
     next(error);
@@ -468,9 +522,11 @@ courtApprovalMasterRouter.get("/:id", async (req, res, next) => {
 courtApprovalMasterRouter.patch("/:id", async (req, res, next) => {
   try {
     const id = req.params.id;
-    const body = req.body && Object.keys(req.body).length > 0 ? req.body : combineRequestInput(req);
+    const input = combineRequestInput(req);
+    const body = req.body && Object.keys(req.body).length > 0 ? req.body : input;
 
     const payload = {
+      ...input,
       ...body,
       id,
       _id: body._id || id,
@@ -487,9 +543,11 @@ courtApprovalMasterRouter.patch("/:id", async (req, res, next) => {
 courtApprovalMasterRouter.patch("/:id/approve", async (req, res, next) => {
   try {
     const id = req.params.id;
+    const input = combineRequestInput(req);
     const body = req.body ?? {};
 
     const result = await updateCourtApprovalService.execute({
+      ...input,
       id,
       status: "Approved",
       slotStatus: "Approved",
@@ -507,11 +565,13 @@ courtApprovalMasterRouter.patch("/:id/approve", async (req, res, next) => {
 courtApprovalMasterRouter.patch("/:id/reject", async (req, res, next) => {
   try {
     const id = req.params.id;
+    const input = combineRequestInput(req);
     const body = req.body ?? {};
 
     const reason = body.rejectionReason?.trim() || "Slot unavailable / Court maintenance scheduled";
 
     const result = await updateCourtApprovalService.execute({
+      ...input,
       id,
       status: "Rejected",
       slotStatus: "Rejected",

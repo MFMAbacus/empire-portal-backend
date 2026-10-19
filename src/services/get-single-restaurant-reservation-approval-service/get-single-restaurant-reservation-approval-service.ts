@@ -13,8 +13,10 @@ export class GetSingleRestaurantReservationApprovalService {
     this._restaurantReservationApprovalRepository = props.restaurantReservationApprovalRepository;
   }
 
-  public async execute(id: string): Promise<Result<any, Failure>> {
+  public async execute(input: any): Promise<Result<any, Failure>> {
     try {
+      const id = typeof input === "string" ? input : (input?.requestId || input?.reservationNo || input?.id);
+      if (!id) return Result.fail(Failure.badRequest("requestId is required"));
       const record = await this._restaurantReservationApprovalRepository.get(id);
       if (!record) {
         return Result.fail(Failure.notFound());

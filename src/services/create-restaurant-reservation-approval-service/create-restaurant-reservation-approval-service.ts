@@ -18,14 +18,14 @@ type Props = {
 
 async function generateSequentialReservationNo(): Promise<string> {
   const records = await RestaurantReservationApproval.find({
-    $or: [{ reservationNo: /^RR-\d+$/ }, { requestNo: /^RR-\d+$/ }],
+    $or: [{ reservationNo: /^RR-\d+$/ }, { requestId: /^RR-\d+$/ }],
   })
-    .select("reservationNo requestNo")
+    .select("reservationNo requestId")
     .lean();
 
   let maxSeq = 0;
   for (const r of records) {
-    const numStr = r.reservationNo || r.requestNo;
+    const numStr = r.reservationNo || r.requestId;
     if (numStr) {
       const match = numStr.match(/^RR-(\d+)$/);
       if (match) {
@@ -146,7 +146,7 @@ export class CreateRestaurantReservationApprovalService {
       const seqNo = await generateSequentialReservationNo();
       payload.id = seqNo;
       payload.reservationNo = seqNo;
-      payload.requestNo = seqNo;
+      payload.requestId = seqNo;
 
       // Auto-Lookup venue details (venueName, projectCode)
       if (payload.venueId) {

@@ -3,7 +3,7 @@ import mongoose, { Schema, Document } from "mongoose";
 export interface ICourtApproval extends Document {
   id: string;
   reservationNo: string;
-  requestNo: string;
+  requestId: string;
   courtId: string;
   courtName?: string;
   courtType?: string;
@@ -39,7 +39,7 @@ const CourtApprovalSchema: Schema = new Schema(
   {
     id: { type: String, required: true, unique: true },
     reservationNo: { type: String, required: true, unique: true },
-    requestNo: { type: String, required: true },
+    requestId: { type: String, required: true },
     courtId: { type: String, required: true },
     courtName: { type: String, required: false },
     courtType: { type: String, required: false },

@@ -12,14 +12,14 @@ import CourtBookingMaster from "@/schemas/court-booking-master-schema/court-book
 
 async function generateSequentialReservationNo(): Promise<string> {
   const records = await CourtApproval.find({
-    $or: [{ reservationNo: /^CR-\d+$/ }, { requestNo: /^CR-\d+$/ }],
+    $or: [{ reservationNo: /^CR-\d+$/ }, { requestId: /^CR-\d+$/ }],
   })
-    .select("reservationNo requestNo")
+    .select("reservationNo requestId")
     .lean();
 
   let maxSeq = 0;
   for (const r of records) {
-    const numStr = r.reservationNo || r.requestNo;
+    const numStr = r.reservationNo || r.requestId;
     if (numStr) {
       const match = numStr.match(/^CR-(\d+)$/);
       if (match) {
@@ -179,7 +179,7 @@ export class CreateCourtApprovalService {
       const seqNo = await generateSequentialReservationNo();
       payload.id = seqNo;
       payload.reservationNo = seqNo;
-      payload.requestNo = seqNo;
+      payload.requestId = seqNo;
 
       // Lookup court details
       if (payload.courtId) {

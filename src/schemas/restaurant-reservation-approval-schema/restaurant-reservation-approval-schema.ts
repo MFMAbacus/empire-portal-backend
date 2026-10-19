@@ -3,7 +3,7 @@ import mongoose, { Schema, Document } from "mongoose";
 export interface IRestaurantReservationApproval extends Document {
   id: string;
   reservationNo: string;
-  requestNo: string;
+  requestId: string;
   venueId: string;
   venueName?: string;
   projectCode: string;
@@ -36,7 +36,7 @@ const RestaurantReservationApprovalSchema: Schema = new Schema(
   {
     id: { type: String, required: true, unique: true },
     reservationNo: { type: String, required: true, unique: true },
-    requestNo: { type: String, required: true },
+    requestId: { type: String, required: true },
     venueId: { type: String, required: true },
     venueName: { type: String, required: false },
     projectCode: { type: String, required: true },

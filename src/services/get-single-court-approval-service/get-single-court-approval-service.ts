@@ -5,11 +5,18 @@ import { ICourtApproval } from "@/schemas/court-approval-schema/court-approval-s
 import mongoose from "mongoose";
 
 export class GetSingleCourtApprovalService {
-  public async execute(id: string): Promise<Result<ICourtApproval, Failure>> {
+  public async execute(input: any): Promise<Result<ICourtApproval, Failure>> {
     try {
-      const conditions: any[] = [{ id }, { reservationNo: id }, { requestNo: id }];
-      if (mongoose.Types.ObjectId.isValid(id) && id.length === 24) {
-        conditions.push({ _id: new mongoose.Types.ObjectId(id) });
+      // Input chahe string ho ya object, requestId, id, ya reservationNo teeno ko check karein
+      const targetId = typeof input === "string" 
+        ? input 
+        : (input?.requestId || input?.id || input?.reservationNo);
+
+      if (!targetId) return Result.fail(Failure.badRequest("Request ID is required"));
+
+      const conditions: any[] = [{ id: targetId }, { reservationNo: targetId }, { requestId: targetId }];
+      if (mongoose.Types.ObjectId.isValid(targetId) && targetId.length === 24) {
+        conditions.push({ _id: new mongoose.Types.ObjectId(targetId) });
       }
 
       const record = await courtApprovalRepository.findOne({ $or: conditions });

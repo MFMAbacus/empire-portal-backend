@@ -95,8 +95,8 @@ export class GetRestaurantReservationApprovalService {
           ...r,
           id: r.id || r._id?.toString(),
           _id: r._id ? r._id.toString() : r.id,
-          reservationNo: r.reservationNo || r.requestNo || r.id,
-          requestNo: r.requestNo || r.reservationNo || r.id,
+          reservationNo: r.reservationNo || r.requestId || r.id,
+          requestId: r.requestId || r.reservationNo || r.id,
           venueName: r.venueName || venue?.venueName || r.venueId,
           reservationName:
             r.reservationName ||

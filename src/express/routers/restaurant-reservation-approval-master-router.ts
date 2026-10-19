@@ -21,7 +21,7 @@ export const restaurantReservationApprovalMasterRouter = express.Router();
 
 // Helper filter for ID / ReservationNo
 function buildFilter(id: string) {
-  const conditions: any[] = [{ id }, { reservationNo: id }, { requestNo: id }];
+  const conditions: any[] = [{ id }, { reservationNo: id }, { requestId: id }];
   if (mongoose.Types.ObjectId.isValid(id) && id.length === 24) {
     conditions.push({ _id: new mongoose.Types.ObjectId(id) });
   }
@@ -224,7 +224,8 @@ restaurantReservationApprovalMasterRouter.get("/lookup/statuses", async (req, re
 // Resident's own reservation requests (for mobile app)
 restaurantReservationApprovalMasterRouter.get("/my-requests/:residentId", async (req, res, next) => {
   try {
-    const result = await getRestaurantReservationApprovalService.execute({ residentId: req.params.residentId });
+    const input = combineRequestInput(req);
+    const result = await getRestaurantReservationApprovalService.execute({ ...input, residentId: req.params.residentId });
     return presentResult(result, res);
   } catch (error) {
     next(error);
@@ -245,19 +246,42 @@ restaurantReservationApprovalMasterRouter.post("/auto-expire", async (req, res, 
 // MAIN CRUD ROUTES
 // ================================================================
 
+// Helper to extract session id and request inputs
+const extractSessionAndInput = (req: express.Request) => {
+  const input = combineRequestInput(req);
+  const sessionId = (
+    input.sessionId ||
+    req.headers["session-id"] ||
+    req.headers.authorization?.replace(/^Bearer\s+/i, "") ||
+    req.body?.sessionId
+  ) as string;
+  return { input, sessionId };
+};
+
 // GET ALL — Web Portal list view (enriched & role-filtered by staff mapping)
 // Also triggers the auto-expire engine on every GET call
+// Supports ?requestId=xxx, ?reservationNo=xxx for single record lookup
 restaurantReservationApprovalMasterRouter.get("/", async (req, res, next) => {
   try {
     // Auto-expire pass-due approved reservations before returning data
     await runAutoExpireEngine();
 
+    const { input, sessionId } = extractSessionAndInput(req);
+    const payload = { ...input, ...(sessionId ? { sessionId } : {}) };
+
+    // If requestId, reservationNo, or id is passed in query, e.g. ?requestId=RR-000014
+    if (payload.requestId || payload.reservationNo || (payload.id && typeof payload.id === "string")) {
+      const singleResult = await getSingleRestaurantReservationApprovalService.execute(payload);
+      return presentResult(singleResult, res);
+    }
+
     const result = await getRestaurantReservationApprovalService.execute({
-      isArchived: req.query.isArchived === "1",
-      residentId: req.query.residentId as string | undefined,
-      venueId: req.query.venueId as string | undefined,
-      projectCode: req.query.projectCode as string | undefined,
-      userId: req.query.userId as string | undefined,
+      ...payload,
+      isArchived: payload.isArchived === "1" || payload.isArchived === true,
+      residentId: payload.residentId as string | undefined,
+      venueId: payload.venueId as string | undefined,
+      projectCode: payload.projectCode as string | undefined,
+      userId: payload.userId as string | undefined,
     });
     return presentResult(result, res);
   } catch (error) {
@@ -268,15 +292,23 @@ restaurantReservationApprovalMasterRouter.get("/", async (req, res, next) => {
 // POST — Submit restaurant reservation request (Mobile App)
 restaurantReservationApprovalMasterRouter.post("/", async (req, res, next) => {
   try {
-    const input = combineRequestInput(req);
-    const payload = req.body && Object.keys(req.body).length > 0 ? req.body : input;
+    const { input, sessionId } = extractSessionAndInput(req);
+    const payload = {
+      ...input,
+      ...(req.body && Object.keys(req.body).length > 0 ? req.body : {}),
+      ...(sessionId ? { sessionId } : {}),
+    };
 
     const result = await createRestaurantReservationApprovalService.execute(payload);
 
     if (!result.hasFailed()) {
       const created = result.getValue() as any;
+      
+      // sessionId aur sessionRecord ko response se strip kar rahe hain
+      const { sessionId: _sid, sessionRecord: _srec, ...cleanCreated } = created;
+
       const staff = await RestaurantStaffMaster.find({
-        $or: [{ venueId: created.venueId }, { projectCode: created.projectCode }],
+        $or: [{ venueId: cleanCreated.venueId }, { projectCode: cleanCreated.projectCode }],
         isActive: true,
         isArchived: false,
       }).lean();
@@ -284,7 +316,7 @@ restaurantReservationApprovalMasterRouter.post("/", async (req, res, next) => {
       return res.status(200).json({
         success: true,
         data: {
-          ...created,
+          ...cleanCreated,
           mappedStaff: staff.map((s: any) => ({
             id: s.id,
             approverRole: s.approverRole,
@@ -302,10 +334,19 @@ restaurantReservationApprovalMasterRouter.post("/", async (req, res, next) => {
   }
 });
 
-// GET SINGLE — by id or reservationNo
-restaurantReservationApprovalMasterRouter.get("/:id", async (req, res, next) => {
+// GET SINGLE — by id, reservationNo, or requestId
+restaurantReservationApprovalMasterRouter.get("/:requestId", async (req, res, next) => {
   try {
-    const result = await getSingleRestaurantReservationApprovalService.execute(req.params.id);
+    const { input, sessionId } = extractSessionAndInput(req);
+    const id = req.params.requestId || input.requestId || input.reservationNo || input.id;
+    const payload = {
+      ...input,
+      id,
+      requestId: id,
+      reservationNo: id,
+      ...(sessionId ? { sessionId } : {}),
+    };
+    const result = await getSingleRestaurantReservationApprovalService.execute(payload);
     return presentResult(result, res);
   } catch (error) {
     next(error);
@@ -320,9 +361,11 @@ restaurantReservationApprovalMasterRouter.get("/:id", async (req, res, next) => 
 restaurantReservationApprovalMasterRouter.patch("/:id", async (req, res, next) => {
   try {
     const id = req.params.id;
-    const body = req.body && Object.keys(req.body).length > 0 ? req.body : combineRequestInput(req);
+    const input = combineRequestInput(req);
+    const body = req.body && Object.keys(req.body).length > 0 ? req.body : input;
 
     const payload = {
+      ...input,
       ...body,
       id,
       _id: body._id || id,
@@ -339,6 +382,7 @@ restaurantReservationApprovalMasterRouter.patch("/:id", async (req, res, next) =
 restaurantReservationApprovalMasterRouter.patch("/:id/approve", async (req, res, next) => {
   try {
     const id = req.params.id;
+    const input = combineRequestInput(req);
     const body = req.body ?? {};
 
     const approvedStatus = await CommonStatusMaster.findOne({
@@ -353,6 +397,7 @@ restaurantReservationApprovalMasterRouter.patch("/:id/approve", async (req, res,
     const statusName = (approvedStatus as any)?.statusName ?? "Approved";
 
     const result = await updateRestaurantReservationApprovalService.execute({
+      ...input,
       id,
       status: statusName,
       approverId: body.approverId ?? null,
@@ -369,6 +414,7 @@ restaurantReservationApprovalMasterRouter.patch("/:id/approve", async (req, res,
 restaurantReservationApprovalMasterRouter.patch("/:id/reject", async (req, res, next) => {
   try {
     const id = req.params.id;
+    const input = combineRequestInput(req);
     const body = req.body ?? {};
 
     const rejectedStatus = await CommonStatusMaster.findOne({
@@ -385,6 +431,7 @@ restaurantReservationApprovalMasterRouter.patch("/:id/reject", async (req, res, 
     const reason = body.rejectionReason?.trim() || "Fully booked for requested slot";
 
     const result = await updateRestaurantReservationApprovalService.execute({
+      ...input,
       id,
       status: statusName,
       rejectionReason: reason,
@@ -401,11 +448,13 @@ restaurantReservationApprovalMasterRouter.patch("/:id/reject", async (req, res, 
 restaurantReservationApprovalMasterRouter.patch("/:id/arrival", async (req, res, next) => {
   try {
     const id = req.params.id;
+    const input = combineRequestInput(req);
     const { isArrived, approverId } = req.body ?? {};
 
     const statusName = isArrived ? "Arrived" : "Expired";
 
     const result = await updateRestaurantReservationApprovalService.execute({
+      ...input,
       id,
       status: statusName,
       approverId: approverId ?? null,

@@ -5,7 +5,7 @@ import { ICourtApproval } from "@/schemas/court-approval-schema/court-approval-s
 import mongoose from "mongoose";
 
 function buildFilter(id: string) {
-  const conditions: any[] = [{ id }, { reservationNo: id }, { requestNo: id }];
+  const conditions: any[] = [{ id }, { reservationNo: id }, { requestId: id }];
   if (mongoose.Types.ObjectId.isValid(id) && id.length === 24) {
     conditions.push({ _id: new mongoose.Types.ObjectId(id) });
   }
