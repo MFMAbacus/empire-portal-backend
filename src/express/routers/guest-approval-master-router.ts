@@ -165,15 +165,30 @@ const handleQrDetails = async (request: express.Request, response: express.Respo
       return response.status(404).json({ success: false, error: "Guest request not found" });
     }
 
-    if (record.approvalStatus !== "Approved") {
-      return response.status(400).json({
+    if (record.approvalStatus == "Pending") {
+      return response.status(200).json({
         success: false,
-        error: "Request is not approved yet",
+        message: "Request is not approved yet",
         status: record.status,
         approvalStatus: record.approvalStatus,
       });
     }
-
+    if (record.approvalStatus == "Approved") {
+      return response.status(200).json({
+        success: true,
+        message: "Request is approved",
+        status: record.status,
+        approvalStatus: record.approvalStatus,
+      });
+    }
+    if (record.approvalStatus == "Used") {
+      return response.status(200).json({
+        success: true,
+        message: "Request is already used",
+        status: record.status,
+        approvalStatus: record.approvalStatus,
+      });
+    }
     const isExpired = record.qrExpiryDate ? new Date() > new Date(record.qrExpiryDate) : false;
 
     // Clean up qrCode by removing .png if it exists at the end
@@ -308,7 +323,7 @@ async function processQrScan(rawQrCodeInput: string, gateId?: string, gateName?:
       statusCode: 200,
       data: {
         success: true,
-        code: "not-approved",
+        code: `${record.approvalStatus || record.status}`,
         message: `Access request status is '${record.approvalStatus || record.status}'. Only Approved requests can be scanned.`,
       },
     };

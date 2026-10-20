@@ -6,15 +6,22 @@ import { SessionRecord } from '@/records/session-record';
 
 type Input = {
   sessionRecord: SessionRecord;
+  projectCode?: string;
+  gateId?: string;
 };
 
 export class GetMobileGuardAccountMappingMasterService implements Service<Input, any> {
   // Yahan explicit return type add karein: Promise<Result<any, Failure>>
   public async execute(input: Input): Promise<Result<any, Failure>> {
     try {
+      if (!input.projectCode || !input.gateId) {
+          return Result.fail(Failure.badRequest("Both projectCode and gateId are required."));
+        }
       const query: any = {
         isActive: true,
         isArchived: false,
+        projectCode: input.projectCode,
+        gateId: input.gateId,
       };
 
       const result = await GuardAccountMappingMaster.find(query)
