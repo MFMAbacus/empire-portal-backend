@@ -1,6 +1,6 @@
 export type CardProcessingMasterModel = {
   id: string;
-  requestNo: string;
+  requestId: string;
   residentId: string;
   residentName: string;
   apartmentId: string;

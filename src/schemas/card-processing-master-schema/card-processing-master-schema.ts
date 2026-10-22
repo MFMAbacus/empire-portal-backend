@@ -2,7 +2,7 @@ import mongoose, { Document, Schema } from "mongoose";
 
 export interface ICardProcessingMaster extends Document {
   id: string;
-  requestNo: string;
+  requestId: string;
   residentId: string;
   residentName: string;
   apartmentId: string;
@@ -34,7 +34,7 @@ export interface ICardProcessingMaster extends Document {
 const CardProcessingMasterSchema: Schema = new Schema(
   {
     id: { type: String, required: true, unique: true },
-    requestNo: { type: String, required: true, unique: true },
+    requestId: { type: String, required: true, unique: true },
     residentId: { type: String, required: true },
     residentName: { type: String, required: true },
     apartmentId: { type: String, required: true },

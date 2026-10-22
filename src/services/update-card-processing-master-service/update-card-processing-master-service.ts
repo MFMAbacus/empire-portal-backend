@@ -18,10 +18,10 @@ export class UpdateCardProcessingMasterService {
   public async execute(input: any): Promise<Result<ICardProcessingMaster, Failure>> {
     try {
       const { id, ...updates } = input;
-      const targetId = id || updates._id || updates.requestNo;
+      const targetId = id || updates._id || updates.requestId;
 
       if (!targetId) {
-        return Result.fail(Failure.badRequest("Request ID or requestNo is required"));
+        return Result.fail(Failure.badRequest("Request ID or requestId is required"));
       }
 
       const existing = await this._cardProcessingMasterRepository.get(targetId);

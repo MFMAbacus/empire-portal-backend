@@ -108,10 +108,15 @@ cardProcessingMasterRouter.get("/lookup/statuses", async (req, res, next) => {
 });
 
 // 7. My Requests (Mobile App resident view)
-cardProcessingMasterRouter.get("/my-requests/:residentId", async (req, res, next) => {
+cardProcessingMasterRouter.get("/my-requests", async (req, res, next) => {
   try {
+    const input = combineRequestInput(req);
     const getService = makeGetCardProcessingMasterService();
-    const result = await getService.execute({ residentId: req.params.residentId });
+    
+    // Path parameter ki bajaye query parameter se residentId le rahe hain
+    const residentId = req.query.residentId || input.residentId;
+
+    const result = await getService.execute({ ...input, residentId });
     return presentResult(result, res);
   } catch (error) {
     next(error);
@@ -126,12 +131,14 @@ cardProcessingMasterRouter.get("/my-requests/:residentId", async (req, res, next
 // Supports ?residentId=xxx & ?projectCode=xxx & ?userId=xxx & ?isArchived=1
 cardProcessingMasterRouter.get("/", async (req, res, next) => {
   try {
+    const input = combineRequestInput(req);
     const getService = makeGetCardProcessingMasterService();
     const result = await getService.execute({
-      isArchived: req.query.isArchived === "1",
-      residentId: req.query.residentId as string | undefined,
-      projectCode: req.query.projectCode as string | undefined,
-      userId: req.query.userId as string | undefined,
+      ...input,
+      isArchived: input.isArchived === "1" || input.isArchived === true,
+      residentId: input.residentId as string | undefined,
+      projectCode: input.projectCode as string | undefined,
+      userId: input.userId as string | undefined,
     });
     return presentResult(result, res);
   } catch (error) {
@@ -143,13 +150,14 @@ cardProcessingMasterRouter.get("/", async (req, res, next) => {
 cardProcessingMasterRouter.post("/", async (req, res, next) => {
   try {
     const input = combineRequestInput(req);
-    const payload = req.body && Object.keys(req.body).length > 0 ? req.body : input;
+    const payload = req.body && Object.keys(req.body).length > 0 ? { ...input, ...req.body } : input;
 
     const createService = makeCreateCardProcessingMasterService();
     const result = await createService.execute(payload);
 
     if (!result.hasFailed()) {
       const created = result.getValue() as any;
+      
       // Also fetch staff mapped to this project code to show assigned card staff
       const cardStaff = await AccessCardStaffMaster.find({
         projectCode: created.projectCode,
@@ -157,10 +165,13 @@ cardProcessingMasterRouter.post("/", async (req, res, next) => {
         isArchived: false,
       }).lean();
 
+      // 👇 sessionId aur sessionRecord ko yahan destructure karke exclude kar diya hai
+      const { sessionId, sessionRecord, ...cleanCreated } = created;
+
       return res.status(200).json({
         success: true,
         data: {
-          ...created,
+          ...cleanCreated, // Iske andar ab sessionId aur sessionRecord nahi honge
           assignedStaff: cardStaff.map((s: any) => ({
             id: s.id,
             staffRole: s.staffRole,
@@ -176,11 +187,12 @@ cardProcessingMasterRouter.post("/", async (req, res, next) => {
   }
 });
 
-// GET SINGLE — by id or requestNo
+// GET SINGLE — by id or requestId
 cardProcessingMasterRouter.get("/:id", async (req, res, next) => {
   try {
+    const input = combineRequestInput(req);
     const getSingleService = makeGetSingleCardProcessingMasterService();
-    const result = await getSingleService.execute(req.params.id);
+    const result = await getSingleService.execute(input);
     return presentResult(result, res);
   } catch (error) {
     next(error);
@@ -195,10 +207,11 @@ cardProcessingMasterRouter.get("/:id", async (req, res, next) => {
 cardProcessingMasterRouter.patch("/:id", async (req, res, next) => {
   try {
     const id = req.params.id;
-    const body = req.body && Object.keys(req.body).length > 0 ? req.body : combineRequestInput(req);
+    const input = combineRequestInput(req);
+    const body = req.body && Object.keys(req.body).length > 0 ? req.body : input;
 
     const updateService = makeUpdateCardProcessingMasterService();
-    const result = await updateService.execute({ id, ...body });
+    const result = await updateService.execute({ ...input, ...body, id });
     return presentResult(result, res);
   } catch (error) {
     next(error);
@@ -209,6 +222,7 @@ cardProcessingMasterRouter.patch("/:id", async (req, res, next) => {
 cardProcessingMasterRouter.patch("/:id/suspend", async (req, res, next) => {
   try {
     const id = req.params.id;
+    const input = combineRequestInput(req);
     const body = req.body ?? {};
 
     const existing = await CardProcessingMaster.findOne(buildFilter(id));
@@ -220,6 +234,7 @@ cardProcessingMasterRouter.patch("/:id/suspend", async (req, res, next) => {
 
     const updateService = makeUpdateCardProcessingMasterService();
     const result = await updateService.execute({
+      ...input,
       id,
       isSuspended: newSuspensionState,
       approverId: body.approverId,
@@ -236,12 +251,14 @@ cardProcessingMasterRouter.patch("/:id/suspend", async (req, res, next) => {
 cardProcessingMasterRouter.patch("/:id/approve", async (req, res, next) => {
   try {
     const id = req.params.id;
+    const input = combineRequestInput(req);
     const body = req.body ?? {};
 
     const targetStatus = body.replacementStatus || body.status || "In Process";
 
     const updateService = makeUpdateCardProcessingMasterService();
     const result = await updateService.execute({
+      ...input,
       id,
       replacementStatus: targetStatus,
       approverId: body.approverId,
@@ -258,11 +275,13 @@ cardProcessingMasterRouter.patch("/:id/approve", async (req, res, next) => {
 cardProcessingMasterRouter.patch("/:id/reject", async (req, res, next) => {
   try {
     const id = req.params.id;
+    const input = combineRequestInput(req);
     const body = req.body ?? {};
     const reason = body.rejectionReason?.trim() || "Information mismatch or unpaid replacement fee";
 
     const updateService = makeUpdateCardProcessingMasterService();
     const result = await updateService.execute({
+      ...input,
       id,
       replacementStatus: "Rejected",
       rejectionReason: reason,
@@ -280,7 +299,7 @@ cardProcessingMasterRouter.patch("/:id/reject", async (req, res, next) => {
 // Helper Filter Function
 // ================================================================
 function buildFilter(id: string) {
-  const conditions: any[] = [{ id }, { requestNo: id }];
+  const conditions: any[] = [{ id }, { requestId: id }];
   if (mongoose.Types.ObjectId.isValid(id) && id.length === 24) {
     conditions.push({ _id: new mongoose.Types.ObjectId(id) });
   }

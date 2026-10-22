@@ -14,8 +14,10 @@ export class GetSingleCardProcessingMasterService {
     this._cardProcessingMasterRepository = props.cardProcessingMasterRepository;
   }
 
-  public async execute(id: string): Promise<Result<ICardProcessingMaster, Failure>> {
+  public async execute(input: any): Promise<Result<ICardProcessingMaster, Failure>> {
     try {
+      const id = typeof input === "string" ? input : input?.id;
+      if (!id) return Result.fail(Failure.badRequest());
       const record = await this._cardProcessingMasterRepository.get(id);
       if (!record) {
         return Result.fail(Failure.notFound());

@@ -17,14 +17,14 @@ type Props = {
 };
 
 async function generateSequentialRequestNo(): Promise<string> {
-  const records = await CardProcessingMaster.find({ requestNo: /^ACR-\d+$/ })
-    .select("requestNo")
+  const records = await CardProcessingMaster.find({ requestId: /^ACR-\d+$/ })
+    .select("requestId")
     .lean();
 
   let maxSeq = 0;
   for (const r of records) {
-    if (r.requestNo) {
-      const match = r.requestNo.match(/^ACR-(\d+)$/);
+    if (r.requestId) {
+      const match = r.requestId.match(/^ACR-(\d+)$/);
       if (match) {
         const num = parseInt(match[1], 10);
         if (num > maxSeq) maxSeq = num;
@@ -51,7 +51,7 @@ export class CreateCardProcessingMasterService {
       // Generate sequential request number (ACR-000001)
       const seqNo = await generateSequentialRequestNo();
       payload.id = seqNo;
-      payload.requestNo = seqNo;
+      payload.requestId = seqNo;
 
       // Extract basic inputs
       const residentId = payload.residentId;

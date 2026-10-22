@@ -59,7 +59,7 @@ export class CardProcessingMasterRepositoryDb
     const idCandidates = [
       (record as any)._id,
       record.id,
-      (record as any).requestNo,
+      (record as any).requestId,
     ].filter(Boolean);
 
     if (idCandidates.length === 0) return undefined;
@@ -68,7 +68,7 @@ export class CardProcessingMasterRepositoryDb
     for (const cand of idCandidates) {
       const str = String(cand);
       conditions.push({ id: str });
-      conditions.push({ requestNo: str });
+      conditions.push({ requestId: str });
       if (mongoose.Types.ObjectId.isValid(str) && str.length === 24) {
         conditions.push({ _id: new mongoose.Types.ObjectId(str) });
       }
@@ -118,7 +118,7 @@ export class CardProcessingMasterRepositoryDb
 
   private _buildFilter(id: string): any {
     if (!id) return {};
-    const conditions: any[] = [{ id }, { requestNo: id }];
+    const conditions: any[] = [{ id }, { requestId: id }];
     if (mongoose.Types.ObjectId.isValid(id) && id.length === 24) {
       conditions.push({ _id: new mongoose.Types.ObjectId(id) });
     }
