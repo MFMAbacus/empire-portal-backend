@@ -6,7 +6,7 @@ export type ResidentMasterRecord = {
   residentId: string;
   name: string;
   email: string;
-  mobileNo: number;
+  mobileNo: string;
   loginUserId: string;
   residentType: string;
   apartmentId: string;

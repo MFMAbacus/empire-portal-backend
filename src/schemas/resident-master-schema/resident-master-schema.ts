@@ -5,7 +5,7 @@ export interface IResidentMaster extends Document {
   residentId: string;
   name: string;
   email: string;
-  mobileNo: number;
+  mobileNo: string;
   loginUserId?: string;
   residentType: string;
   apartmentId: string;
@@ -20,7 +20,7 @@ const ResidentMasterSchema: Schema = new Schema(
     residentId: { type: String, required: true },
     name: { type: String, required: true },
     email: { type: String, required: true },
-    mobileNo: { type: Number, required: true },
+    mobileNo: { type: String, required: true },
     loginUserId: { type: String, required: false, default: "" },
     residentType: { type: String, required: true },
     apartmentId: { type: String, required: true },

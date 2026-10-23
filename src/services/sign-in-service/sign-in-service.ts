@@ -12,6 +12,7 @@ import { ISessionRecord } from "@/schemas/session-schema";
 import { UserRepository } from "@/repositories/user-repository";
 import { CustomerRepository } from "@/repositories/customer-repository";
 import { SessionRepository } from "@/repositories/session-repository";
+import { findResidentByCustomerCode } from "@/utility/customer-resident-helper";
 
 type Props = {
   userRepository: UserRepository;
@@ -120,6 +121,24 @@ export class SignInService {
       sessionRecord.userId = customerRecord.id;
       sessionRecord.firstName = customerRecord.firstName;
       sessionRecord.lastName = customerRecord.lastName;
+
+      // Check if customer is also a resident and attach resident info to response
+      let residentInfo: any = null;
+      try {
+        residentInfo = await findResidentByCustomerCode(customerRecord.id);
+      } catch (e) {
+        // ignore - resident lookup failure should not block login
+      }
+
+      await this._sessionRepository.Create(sessionRecord);
+
+      const responseData: any = {
+        ...sessionRecord,
+        isResident: residentInfo !== null,
+        residentInfo: residentInfo,
+      };
+
+      return Result.ok(responseData);
     }
 
     await this._sessionRepository.Create(sessionRecord);

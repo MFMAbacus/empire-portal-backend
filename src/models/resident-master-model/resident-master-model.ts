@@ -41,7 +41,7 @@ export class ResidentMasterModel extends Model {
     );
     validationBag.set(
       "mobileNo",
-      Validation.make(this.get("mobileNo")).mandatory().number().getRule()
+      Validation.make(this.get("mobileNo")).mandatory().string().getRule()
     );
     validationBag.set(
       "residentType",

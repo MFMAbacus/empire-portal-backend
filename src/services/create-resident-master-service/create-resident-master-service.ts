@@ -3,6 +3,7 @@ import { Failure } from "@/utility/failure";
 import { Generator } from "@/utility/generator";
 import { ResidentMasterModel } from "@/models/resident-master-model";
 import { ResidentMasterRepository } from "@/repositories/resident-master-repository";
+import { Customer } from "@/schemas/customer-schema/cutomer-schema";
 
 type Props = {
   residentMasterRepository: ResidentMasterRepository;
@@ -13,7 +14,7 @@ type Input = {
   residentId?: string;   // Unique Resident Code
   name: string;
   email: string;
-  mobileNo?: number;     // Primitive number
+  mobileNo?: string;     // Primitive string
   loginUserId?: string;
   residentType: string;
   apartmentId: string;
@@ -46,6 +47,20 @@ export class CreateResidentMasterService {
         existing.isActive = isActive;
 
         await this._residentMasterRepository.Update(existing as any);
+
+        // Update case: loginUserId ho to customer ka isResident = true karo
+        const updatedLoginUserId = input.loginUserId || existing.loginUserId;
+        if (updatedLoginUserId && updatedLoginUserId.trim() !== "") {
+          try {
+            await Customer.updateOne(
+              { id: updatedLoginUserId.trim() },
+              { $set: { isResident: true } }
+            );
+          } catch (e) {
+            // ignore
+          }
+        }
+
         return Result.ok(input.id);
       }
     }
@@ -69,7 +84,7 @@ export class CreateResidentMasterService {
       residentId: finalResidentId,
       name: input.name,
       email: input.email,
-      mobileNo: input.mobileNo ?? 0,
+      mobileNo: input.mobileNo ?? "",
       loginUserId: input.loginUserId || "",
       residentType: input.residentType,
       apartmentId: input.apartmentId,
@@ -85,6 +100,18 @@ export class CreateResidentMasterService {
 
     const record = residentModel.getRecord();
     await this._residentMasterRepository.Create(record as any);
+
+    // Agar loginUserId hai to Customer ka isResident = true kar do
+    if (input.loginUserId && input.loginUserId.trim() !== "") {
+      try {
+        await Customer.updateOne(
+          { id: input.loginUserId.trim() },
+          { $set: { isResident: true } }
+        );
+      } catch (e) {
+        // ignore - customer update fail hone se resident creation block na ho
+      }
+    }
 
     return Result.ok(residentModel.get("id"));
   }

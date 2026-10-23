@@ -12,7 +12,7 @@ type Input = {
   residentId: string;      // Unique Resident Identifier
   name?: string;
   email?: string;
-  mobileNo?: number;       // Primitive number type
+  mobileNo?: string;       // Primitive string type
   loginUserId?: string;
   residentType?: string;
   apartmentId?: string;
