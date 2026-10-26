@@ -76,6 +76,7 @@ export async function findResidentByCustomerCode(customerIdentifier: string) {
       resident = await ResidentMaster.findOne({
         $or: conditions,
         isArchived: false,
+        isActive: true,
       }).lean();
     }
   } catch (e) {

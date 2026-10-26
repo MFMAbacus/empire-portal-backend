@@ -18,6 +18,7 @@ type Input = {
   description?: string;
   imageOrLogo?: string;
   isActive?: boolean;
+  isAccessAllowed?: boolean;
 };
 
 export class UpdateVenueMasterService {
@@ -45,6 +46,10 @@ export class UpdateVenueMasterService {
         ? Boolean(input.isActive)
         : record.isActive;
 
+    const isAccessAllowed =
+      typeof input.isAccessAllowed !== "undefined"
+        ? Boolean(input.isAccessAllowed)
+        : record.isAccessAllowed;
     // Re-construct & validate with Model before saving
     const venueModel = VenueMasterModel.make({
       id: targetId,
@@ -57,6 +62,7 @@ export class UpdateVenueMasterService {
       description: input.description ?? record.description,
       imageOrLogo: input.imageOrLogo ?? record.imageOrLogo,
       isActive: isActive,
+      isAccessAllowed: isAccessAllowed,
       isArchived: record.isArchived ?? false,
     });
 

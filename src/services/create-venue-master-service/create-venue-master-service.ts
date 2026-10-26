@@ -19,6 +19,7 @@ type Input = {
   description?: string;
   imageOrLogo?: string;
   isActive?: boolean;
+  isAccessAllowed?: boolean;
 };
 
 export class CreateVenueMasterService {
@@ -30,7 +31,7 @@ export class CreateVenueMasterService {
 
   public async execute(input: Input): Promise<Result<string, Failure>> {
     const isActive = typeof input.isActive !== "undefined" ? Boolean(input.isActive) : true;
-
+    const isAccessAllowed = typeof input.isAccessAllowed !== "undefined" ? Boolean(input.isAccessAllowed) : true;
     // UPDATE LOGIC (Sirf tab chalega jab DB ki primary key 'input.id' pass ki gayi ho)
     if (input.id) {
       const existing = await this._venueMasterRepository.get(input.id);
@@ -44,6 +45,7 @@ export class CreateVenueMasterService {
         existing.description = input.description ?? existing.description;
         existing.imageOrLogo = input.imageOrLogo ?? existing.imageOrLogo;
         existing.isActive = isActive;
+        existing.isAccessAllowed = isAccessAllowed;
 
         await this._venueMasterRepository.Update(existing);
         return Result.ok(input.id);
@@ -76,6 +78,7 @@ export class CreateVenueMasterService {
       description: input.description,
       imageOrLogo: input.imageOrLogo,
       isActive: isActive,
+      isAccessAllowed: isAccessAllowed,
       isArchived: false,
     });
 

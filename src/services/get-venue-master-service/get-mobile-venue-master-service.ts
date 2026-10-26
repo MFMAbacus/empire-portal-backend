@@ -15,6 +15,7 @@ export class GetMobileVenueMasterService implements Service<Input, any> {
     try {
       const query: any = {
         isActive: true,
+        isAccessAllowed: true,
         isArchived: false,
       };
 

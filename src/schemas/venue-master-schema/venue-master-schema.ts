@@ -11,6 +11,7 @@ export interface IVenueMaster extends Document {
   description?: string;
   imageOrLogo?: string;
   isActive: boolean;
+  isAccessAllowed: boolean;
   isArchived: boolean;
 }
 
@@ -26,6 +27,7 @@ const VenueMasterSchema: Schema = new Schema(
     description: { type: String, required: false },
     imageOrLogo: { type: String, required: false },
     isActive: { type: Boolean, default: true },
+    isAccessAllowed: { type: Boolean, default: true },
     isArchived: { type: Boolean, default: false },
   },
   { timestamps: true }

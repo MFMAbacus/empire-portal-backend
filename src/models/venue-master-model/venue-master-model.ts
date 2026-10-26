@@ -17,6 +17,7 @@ export class VenueMasterModel extends Model {
       description: record.description,
       imageOrLogo: record.imageOrLogo,
       isActive: record.isActive ?? true,
+      isAccessAllowed: record.isAccessAllowed ?? true,
       isArchived: record.isArchived ?? false,
     };
 
