@@ -4,7 +4,7 @@ export type ReplacementFeeMasterRecord = {
   _id?: ObjectId;
   id: string;
   feeId: string;
-  feeAmount: string;
+  feeAmount: number;
   tax: string;
   currency: string;
   projectCode: string;
