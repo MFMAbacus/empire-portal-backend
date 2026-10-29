@@ -24,6 +24,8 @@ import { UserRepository } from "@/repositories/user-repository";
 import { transactionService } from "../transaction-service";
 import { fibStatusCallbackUrl } from "@/config/app";
 import { DeviceType } from "@/types/general";
+import { CardPaymentHelper } from "@/utility/card-payment-helper";
+import CardProcessingMaster from "@/schemas/card-processing-master-schema/card-processing-master-schema";
 
 type Props = {
   requestRepository: RequestRepository;
@@ -129,11 +131,14 @@ export class CreatePaymentService {
       return Result.fail(Failure.validation(validationBag));
     }
 
-    const requestsRecords = await this._requestRepository.getAll({
+    const normalRequestIds = requestsIds.filter((id) => !CardPaymentHelper.isCardRequest(id));
+    const cardRequestIds = requestsIds.filter((id) => CardPaymentHelper.isCardRequest(id));
+    const cardRecords = cardRequestIds.length > 0 ? await CardPaymentHelper.getCardRequests(cardRequestIds) : [];
+    const requestsRecords = normalRequestIds.length > 0 ? await this._requestRepository.getAll({ ids: normalRequestIds }) : []; const _clean = ({
       ids: requestsIds,
     });
 
-    if (requestsRecords.length !== requestsIds.length) {
+    if (requestsRecords.length + cardRecords.length !== requestsIds.length) {
       validationBag.set(
         "requestsIds",
         ValidationRule.valueIsInvalid(
@@ -206,6 +211,44 @@ export class CreatePaymentService {
       customerName = requestRecord.customerName;
     }
 
+    for (const cardRecord of cardRecords) {
+      if (cardRecord.paymentStatus === "Paid") {
+        validationBag.set(
+          "requests",
+          ValidationRule.valueIsInvalid(
+            "List contains one or more already paid requests.",
+          ),
+        );
+        return Result.fail(Failure.validation(validationBag));
+      }
+
+      const cardAmount =
+        requestsAmounts[cardRecord.requestId] ??
+        requestsAmounts[cardRecord.id] ??
+        cardRecord.totalFee ??
+        cardRecord.feeAmount ??
+        0;
+
+      const paymentItemRecord = new PaymentItem({
+        row: row++,
+        requestId: cardRecord.requestId || cardRecord.id,
+        staffId: null,
+        categoryName: "Access Card Replacement",
+        totalAmount: cardAmount,
+      });
+
+      paymentItemsRecords.push(paymentItemRecord);
+
+      treatedIds[cardRecord.requestId || cardRecord.id] = true;
+      totalAmount += cardAmount;
+
+      if (!customerId) {
+        customerId = cardRecord.residentId;
+        customerCode = cardRecord.residentId;
+        customerName = cardRecord.residentName || "Resident";
+      }
+    }
+
     if (Number.isNaN(totalAmount) || totalAmount === 0) {
       return Result.fail(Failure.badRequest("invalid-amount"));
     }
@@ -271,6 +314,12 @@ export class CreatePaymentService {
 
       await transactionService.logPaymentCreated(paymentRecord);
 
+      if (cardRecords.length > 0) {
+        await CardProcessingMaster.updateMany(
+          { $or: [{ requestId: { $in: cardRequestIds } }, { id: { $in: cardRequestIds } }] },
+          { $set: { paymentStatus: "Pending", paymentMethod: "FIB" } }
+        );
+      }
       return Result.ok(paymentDataResult.getValue());
     }
 
@@ -326,6 +375,9 @@ export class CreatePaymentService {
 
       await transactionService.logPaymentCreated(paymentRecord);
 
+      if (cardRecords.length > 0) {
+        await CardPaymentHelper.confirmCardRequestsPayment(cardRequestIds, paymentData);
+      }
       await this._requestRepository.pay(paymentData);
       return Result.ok(paymentRecord.id);
     }
@@ -382,6 +434,9 @@ export class CreatePaymentService {
 
       await transactionService.logPaymentCreated(paymentRecord);
 
+      if (cardRecords.length > 0) {
+        await CardPaymentHelper.confirmCardRequestsPayment(cardRequestIds, paymentData);
+      }
       await this._requestRepository.pay(paymentData);
       return Result.ok(paymentRecord.id);
     }

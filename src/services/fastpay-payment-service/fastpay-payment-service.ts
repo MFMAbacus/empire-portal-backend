@@ -23,6 +23,8 @@ import { B1Api } from "@/utility/b1-api/b1-api";
 import { Payment } from "@/schemas/payment-schema";
 import { transactionService } from "../transaction-service";
 import { DeviceType } from "@/types/general";
+import { CardPaymentHelper } from "@/utility/card-payment-helper";
+import CardProcessingMaster from "@/schemas/card-processing-master-schema/card-processing-master-schema";
 
 type Input = {
   sessionRecord: SessionRecord;
@@ -152,10 +154,18 @@ export class FastpayPaymentInService {
       return Result.fail(Failure.validation(validationBag));
     }
 
-    const requestsRecords = await this._requestRepository.getAll({
-      ids: requestsIds,
+    const normalRequestIds = requestsIds.filter((id) => !CardPaymentHelper.isCardRequest(id));
+    const cardRequestIds = requestsIds.filter((id) => CardPaymentHelper.isCardRequest(id));
+    const cardRecords = cardRequestIds.length > 0 ? await CardPaymentHelper.getCardRequests(cardRequestIds) : [];
+    const requestsRecords = normalRequestIds.length > 0 ? await this._requestRepository.getAll({ ids: normalRequestIds }) : []; const _clean = (() => {
+
+
     });
 
+    if (requestsRecords.length + cardRecords.length !== requestsIds.length) {
+      validationBag.set("requestsIds", ValidationRule.valueIsInvalid("One or more requests are not found in the list"));
+      return Result.fail(Failure.validation(validationBag));
+    }
     let totalAmount = 0;
     const paymentItemsRecords: IPaymentItemRecord[] = [];
     let row = 0;
@@ -218,6 +228,51 @@ export class FastpayPaymentInService {
       customerName = requestRecord.customerName;
     }
 
+    for (const cardRecord of cardRecords) {
+      if (cardRecord.paymentStatus === "Paid") {
+        validationBag.set(
+          "requests",
+          ValidationRule.valueIsInvalid(
+            "List contains one or more already paid requests.",
+          ),
+        );
+        return Result.fail(Failure.validation(validationBag));
+      }
+
+      const cardAmount =
+        requestsAmounts[cardRecord.requestId] ??
+        requestsAmounts[cardRecord.id] ??
+        cardRecord.totalFee ??
+        cardRecord.feeAmount ??
+        0;
+
+      const item = new PaymentItem({
+        row: row++,
+        requestId: cardRecord.requestId || cardRecord.id,
+        staffId: null,
+        categoryName: "Access Card Replacement",
+        totalAmount: cardAmount,
+      });
+
+      paymentItemsRecords.push(item);
+
+      cart.push({
+        name: `Card Replacement - ${cardRecord.reason || "Fee"}`,
+        qty: 1,
+        unit_price: cardAmount,
+        sub_total: cardAmount,
+      });
+
+      treatedIds[cardRecord.requestId || cardRecord.id] = true;
+      totalAmount += cardAmount;
+
+      if (!customerId) {
+        customerId = cardRecord.residentId;
+        customerCode = cardRecord.residentId;
+        customerName = cardRecord.residentName || "Resident";
+      }
+    }
+
     if (Number.isNaN(totalAmount) || totalAmount === 0) {
       return Result.fail(Failure.badRequest("invalid-amount"));
     }
@@ -276,6 +331,13 @@ export class FastpayPaymentInService {
         PaymentItem,
         "items",
       );
+
+      if (cardRecords.length > 0) {
+        await CardProcessingMaster.updateMany(
+          { $or: [{ requestId: { $in: cardRequestIds } }, { id: { $in: cardRequestIds } }] },
+          { $set: { paymentStatus: "Pending", paymentMethod: "FastPay" } }
+        );
+      }
 
       requestsRecords.map((request) => {
         request.paymentStatus = "Pending";

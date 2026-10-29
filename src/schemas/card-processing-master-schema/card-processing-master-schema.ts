@@ -50,7 +50,7 @@ const CardProcessingMasterSchema: Schema = new Schema(
     taxAmount: { type: String, required: false, default: "0%" },
     totalFee: { type: Number, required: true, default: 0 },
     paymentMethod: { type: String, required: true, default: "Credit Card" },
-    paymentStatus: { type: String, required: true, default: "Paid" },
+    paymentStatus: { type: String, required: true, default: "Pending" },
     isSuspended: { type: Boolean, default: true },
     replacementStatus: { type: String, required: true, default: "Pending" },
     status: { type: String, required: true, default: "Pending" },

@@ -17,6 +17,7 @@ import { Generator } from "@/utility/generator";
 import { getTokensByUserId } from "@/data/clients-sessions";
 import { B1ApiResponse } from "@/utility/b1-api";
 import { transactionService } from "../transaction-service";
+import { CardPaymentHelper } from "@/utility/card-payment-helper";
 
 type Input = {
   order_id: string;
@@ -79,6 +80,24 @@ export class FastpayIpnService {
         await this._paymentRepository.Update(paymentRecord);
         return Result.fail(Failure.paymentFailed());
       }
+      const cardRequestIds = paymentRecord.requestsIds.filter((id) => CardPaymentHelper.isCardRequest(id));
+      const normalRequestIds = paymentRecord.requestsIds.filter((id) => !CardPaymentHelper.isCardRequest(id));
+
+      if (cardRequestIds.length > 0) {
+        await CardPaymentHelper.confirmCardRequestsPayment(cardRequestIds, paymentRecord);
+        if (normalRequestIds.length === 0) {
+          paymentRecord.isFailed = false;
+          paymentRecord.callBackAttempted = true;
+          paymentRecord.isConfirmed = true;
+          paymentRecord.confirmedAt = DateTime.now().toString();
+          paymentRecord.sapStatus = true;
+          paymentRecord.sapMessage = "Card Payment Completed";
+          await this._paymentRepository.Update(paymentRecord);
+          await transactionService.logPaymentConfirmed(paymentRecord, paymentRecord.id);
+          return Result.ok(undefined);
+        }
+      }
+
       const requestsRecords = await this._requestRepository.getAll({
         ids: paymentRecord.requestsIds,
       });

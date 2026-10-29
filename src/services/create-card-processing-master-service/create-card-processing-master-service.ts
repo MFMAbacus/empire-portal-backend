@@ -173,7 +173,7 @@ export class CreateCardProcessingMasterService {
 
       // Default fields
       payload.paymentMethod = payload.paymentMethod || "Credit Card";
-      payload.paymentStatus = payload.paymentStatus || "Paid";
+      payload.paymentStatus = "Pending";
       payload.isSuspended = true; // Portal suspension default for lost card replacement
       payload.replacementStatus = "Pending";
       payload.status = "Pending";

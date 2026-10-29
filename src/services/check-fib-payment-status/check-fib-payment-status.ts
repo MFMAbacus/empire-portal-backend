@@ -11,6 +11,7 @@ import { InvoicePaymentRepositoryDb } from "@/repositories/invoice-payment-repos
 import { InvoicePayment } from "@/schemas/invoice-payment-schema";
 import { FastPayApi } from "@/utility/fastPay-api";
 import { transactionService } from "../transaction-service";
+import { CardPaymentHelper } from "@/utility/card-payment-helper";
 
 type Props = {
   requestRepository: RequestRepositoryDb;
@@ -154,6 +155,25 @@ export class CheckFibPaymentStatus {
               continue;
             }
           } catch (error) {
+            continue;
+          }
+        }
+
+        const cardRequestIds = paymentRecord.requestsIds.filter((id: string) => CardPaymentHelper.isCardRequest(id));
+        const normalRequestIds = paymentRecord.requestsIds.filter((id: string) => !CardPaymentHelper.isCardRequest(id));
+
+        if (cardRequestIds.length > 0) {
+          await CardPaymentHelper.confirmCardRequestsPayment(cardRequestIds, paymentRecord);
+          if (normalRequestIds.length === 0) {
+            paymentRecord.callBackAttempted = true;
+            paymentRecord.isFailed = false;
+            paymentRecord.isConfirmed = true;
+            paymentRecord.confirmedAt = DateTime.now().toString();
+            paymentRecord.sapMessage = "Card Payment Completed";
+            paymentRecord.sapStatus = true;
+            paymentRecord.retryDate = DateTime.now().toString();
+            await this._paymentRepository.Update(paymentRecord);
+            await transactionService.logPaymentConfirmed(paymentRecord, paymentRecord.id);
             continue;
           }
         }

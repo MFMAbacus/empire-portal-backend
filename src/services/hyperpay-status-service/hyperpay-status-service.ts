@@ -14,6 +14,7 @@ import { transactionService } from "../transaction-service";
 import { Generator } from "@/utility/generator";
 import NotificationFCM from "@/utility/notification/notification";
 import { getTokensByUserId } from "@/data/clients-sessions";
+import { CardPaymentHelper } from "@/utility/card-payment-helper";
 
 type Input = {
   checkoutId?: string;
@@ -115,6 +116,24 @@ export class HyperPayStatusService {
     }
 
     if (paymentStatus === "PAID") {
+      const cardRequestIds = paymentRecord.requestsIds.filter((id: string) => CardPaymentHelper.isCardRequest(id));
+      const normalRequestIds = paymentRecord.requestsIds.filter((id: string) => !CardPaymentHelper.isCardRequest(id));
+
+      if (cardRequestIds.length > 0) {
+        await CardPaymentHelper.confirmCardRequestsPayment(cardRequestIds, paymentRecord);
+        if (normalRequestIds.length === 0) {
+          paymentRecord.callBackAttempted = true;
+          paymentRecord.isFailed = false;
+          paymentRecord.isConfirmed = true;
+          paymentRecord.confirmedAt = DateTime.now().toString();
+          paymentRecord.sapStatus = true;
+          paymentRecord.sapMessage = "Card Payment Completed";
+          await this._paymentRepository.Update(paymentRecord);
+          await transactionService.logPaymentConfirmed(paymentRecord, paymentRecord.id);
+          return Result.ok({ message: "Payment successfully processed" });
+        }
+      }
+
       const requestsRecords = await this._requestRepository.getAll({
         ids: paymentRecord.requestsIds,
       });
@@ -200,6 +219,10 @@ export class HyperPayStatusService {
       paymentRecord.retryDate = DateTime.now().toString();
       await this._paymentRepository.Update(paymentRecord);
 
+      const cardRequestIds = paymentRecord.requestsIds.filter((id: string) => CardPaymentHelper.isCardRequest(id));
+      if (cardRequestIds.length > 0) {
+        await CardPaymentHelper.markCardRequestsFailed(cardRequestIds, paymentData.result?.description);
+      }
       await transactionService.logPaymentFailed(
         paymentRecord,
         `HyperPay payment declined: ${paymentData.result.description}`,

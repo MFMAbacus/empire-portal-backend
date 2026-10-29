@@ -12,6 +12,7 @@ import { getTokensByUserId } from "@/data/clients-sessions";
 import NotificationFCM from "@/utility/notification/notification";
 import { Generator } from "@/utility/generator";
 import { transactionService } from "../transaction-service";
+import { CardPaymentHelper } from "@/utility/card-payment-helper";
 
 type Input = {
   paymentId: string;
@@ -72,6 +73,25 @@ export class PaymentConfirmService {
       );
 
       return Result.fail(Failure.paymentFailed());
+    }
+
+    const cardRequestIds = paymentRecord.requestsIds.filter((id: string) => CardPaymentHelper.isCardRequest(id));
+    const normalRequestIds = paymentRecord.requestsIds.filter((id: string) => !CardPaymentHelper.isCardRequest(id));
+
+    if (cardRequestIds.length > 0) {
+      await CardPaymentHelper.confirmCardRequestsPayment(cardRequestIds, paymentRecord);
+      if (normalRequestIds.length === 0) {
+        paymentRecord.callBackAttempted = true;
+        paymentRecord.isFailed = false;
+        paymentRecord.isConfirmed = true;
+        paymentRecord.confirmedAt = DateTime.now().toString();
+        paymentRecord.sapMessage = "Card Payment Completed";
+        paymentRecord.sapStatus = true;
+        paymentRecord.retryDate = DateTime.now().toString();
+        await this._paymentRepository.Update(paymentRecord);
+        await transactionService.logPaymentConfirmed(paymentRecord, paymentRecord.id);
+        return Result.ok(undefined);
+      }
     }
 
     const requestsRecords = await this._requestRepository.getAll({

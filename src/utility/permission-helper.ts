@@ -53,6 +53,8 @@ export class PermissionHelper {
       userManagement: { read: false, write: false },
       welcomescreenMedia: { read: false, write: false },
       collection: { read: false, write: false },
+      transactions: { read: false, write: false },
+      generalConfigurations: { read: false, write: false },
       masterForms: {
         read: false,
         write: false,
@@ -88,7 +90,7 @@ export class PermissionHelper {
           "court-operating-master": { read: false, write: false },
           "court-time-master": { read: false, write: false },
           "court-blocking-master": { read: false, write: false },
-          "project-court-master": { read: false, write: false },
+          //"project-court-master": { read: false, write: false },
           "court-booking-master": { read: false, write: false },
           "facility-approval-master": { read: false, write: false },
           "guest-approval-master": { read: false, write: false },
@@ -110,21 +112,37 @@ export class PermissionHelper {
 
     if (oldPermissions.activities) {
       newPermissions.activities = {
-        read: oldPermissions.activities.read,
-        write: oldPermissions.activities.write,
+        read: Boolean(oldPermissions.activities.read),
+        write: Boolean(oldPermissions.activities.write),
         subSections: {
           tasks: {
-            read: oldPermissions.activities.read,
-            write: oldPermissions.activities.write,
+            read: Boolean(
+              oldPermissions.activities?.subSections?.tasks?.read ??
+                oldPermissions.activities.read
+            ),
+            write: Boolean(
+              oldPermissions.activities?.subSections?.tasks?.write ??
+                oldPermissions.activities.write
+            ),
           },
           requests: {
-            read: oldPermissions.activities.read,
-            write: oldPermissions.activities.write,
+            read: Boolean(
+              oldPermissions.activities?.subSections?.requests?.read ??
+                oldPermissions.activities.read
+            ),
+            write: Boolean(
+              oldPermissions.activities?.subSections?.requests?.write ??
+                oldPermissions.activities.write
+            ),
             actions: {
               receiveCredit: {
-                allowed: oldPermissions.credit
-                  ? oldPermissions.credit.write
-                  : false,
+                allowed: Boolean(
+                  oldPermissions.activities?.subSections?.requests?.actions
+                    ?.receiveCredit?.allowed ??
+                    (oldPermissions.credit
+                      ? oldPermissions.credit.write
+                      : false)
+                ),
               },
             },
           },
@@ -132,45 +150,122 @@ export class PermissionHelper {
       };
     }
 
+    if (oldPermissions.meeting) {
+      newPermissions.meeting = {
+        read: Boolean(oldPermissions.meeting.read),
+        write: Boolean(oldPermissions.meeting.write),
+        subSections: {
+          meetings: {
+            read: Boolean(
+              oldPermissions.meeting?.subSections?.meetings?.read ??
+                oldPermissions.meeting.read
+            ),
+            write: Boolean(
+              oldPermissions.meeting?.subSections?.meetings?.write ??
+                oldPermissions.meeting.write
+            ),
+          },
+          meetingInvite: {
+            read: Boolean(
+              oldPermissions.meeting?.subSections?.meetingInvite?.read ??
+                oldPermissions.meeting.read
+            ),
+            write: Boolean(
+              oldPermissions.meeting?.subSections?.meetingInvite?.write ??
+                oldPermissions.meeting.write
+            ),
+          },
+        },
+      };
+    }
+
     if (oldPermissions.customers) {
       newPermissions.customers = {
-        read: oldPermissions.customers.read,
-        write: oldPermissions.customers.write,
+        read: Boolean(oldPermissions.customers.read),
+        write: Boolean(oldPermissions.customers.write),
         actions: {
-          sendingInvitation: { allowed: oldPermissions.customers.write },
-          blocking: { allowed: oldPermissions.customers.write },
+          sendingInvitation: {
+            allowed: Boolean(
+              oldPermissions.customers?.actions?.sendingInvitation?.allowed ??
+                oldPermissions.customers.write
+            ),
+          },
+          blocking: {
+            allowed: Boolean(
+              oldPermissions.customers?.actions?.blocking?.allowed ??
+                oldPermissions.customers.write
+            ),
+          },
         },
       };
     }
 
     if (oldPermissions.inventory) {
       newPermissions.inventory = {
-        read: oldPermissions.inventory.read,
-        write: oldPermissions.inventory.write,
+        read: Boolean(oldPermissions.inventory.read),
+        write: Boolean(oldPermissions.inventory.write),
         actions: {
-          displayPrices: { allowed: oldPermissions.inventory.read },
+          displayPrices: {
+            allowed: Boolean(
+              oldPermissions.inventory?.actions?.displayPrices?.allowed ??
+                oldPermissions.inventory.read
+            ),
+          },
         },
       };
     }
 
     if (oldPermissions.announcements) {
       newPermissions.announcements = {
-        read: oldPermissions.announcements.read,
-        write: oldPermissions.announcements.write,
+        read: Boolean(oldPermissions.announcements.read),
+        write: Boolean(oldPermissions.announcements.write),
       };
     }
 
-    if (oldPermissions.userManagement) {
+    const um =
+      oldPermissions.userManagement || oldPermissions["user-management"];
+    if (um) {
       newPermissions.userManagement = {
-        read: oldPermissions.userManagement.read,
-        write: oldPermissions.userManagement.write,
+        read: Boolean(um.read),
+        write: Boolean(um.write),
       };
     }
 
-    if (oldPermissions["welcomescreen-media"]) {
+    const wsMedia =
+      oldPermissions.welcomescreenMedia ||
+      oldPermissions["welcomescreen-media"];
+    if (wsMedia) {
       newPermissions.welcomescreenMedia = {
-        read: oldPermissions["welcomescreen-media"].read,
-        write: oldPermissions["welcomescreen-media"].write,
+        read: Boolean(wsMedia.read),
+        write: Boolean(wsMedia.write),
+      };
+    }
+
+    const collectionData =
+      oldPermissions.collection || oldPermissions.collections;
+    if (collectionData) {
+      newPermissions.collection = {
+        read: Boolean(collectionData.read),
+        write: Boolean(collectionData.write),
+      };
+    }
+
+    const transactionsData =
+      oldPermissions.transactions || oldPermissions.transaction;
+    if (transactionsData) {
+      newPermissions.transactions = {
+        read: Boolean(transactionsData.read),
+        write: Boolean(transactionsData.write),
+      };
+    }
+
+    const generalConfigData =
+      oldPermissions.generalConfigurations ||
+      oldPermissions["general-configurations"];
+    if (generalConfigData) {
+      newPermissions.generalConfigurations = {
+        read: Boolean(generalConfigData.read),
+        write: Boolean(generalConfigData.write),
       };
     }
 
