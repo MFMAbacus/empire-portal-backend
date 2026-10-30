@@ -14,6 +14,7 @@ export class CourtMasterModel extends Model {
       location: record.location,
       projectCode: record.projectCode,
       isActive: record.isActive ?? true,
+      isAccessAllowed: record.isAccessAllowed ?? true,
       isArchived: record.isArchived ?? false,
     };
 

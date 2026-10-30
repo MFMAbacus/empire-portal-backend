@@ -16,6 +16,7 @@ type Input = {
   location: string;
   projectCode: string;
   isActive?: boolean;
+  isAccessAllowed?: boolean;
 };
 
 export class CreateCourtMasterService {
@@ -27,6 +28,7 @@ export class CreateCourtMasterService {
 
   public async execute(input: Input): Promise<Result<string, Failure>> {
     const isActive = typeof input.isActive !== "undefined" ? Boolean(input.isActive) : true;
+    const isAccessAllowed = typeof input.isAccessAllowed !== "undefined" ? Boolean(input.isAccessAllowed) : true;
 
     // UPDATE LOGIC (Sirf tab chalega jab DB ki primary key 'input.id' pass ki gayi ho)
     if (input.id) {
@@ -38,6 +40,7 @@ export class CreateCourtMasterService {
         existing.location = input.location || existing.location;
         existing.courtType = input.courtType || existing.courtType;
         existing.isActive = isActive;
+        existing.isAccessAllowed = isAccessAllowed;
 
         await this._courtMasterRepository.Update(existing);
         return Result.ok(input.id);
@@ -67,6 +70,7 @@ export class CreateCourtMasterService {
       location: input.location,
       courtType: input.courtType,
       isActive: isActive,
+      isAccessAllowed: isAccessAllowed,
       isArchived: false,
     });
 

@@ -9,5 +9,6 @@ export type CourtMasterRecord = {
   location: string;
   projectCode: string;
   isActive: boolean;
+  isAccessAllowed: boolean;
   isArchived: boolean;
 };

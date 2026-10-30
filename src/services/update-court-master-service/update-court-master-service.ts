@@ -15,6 +15,7 @@ type Input = {
   location: string;
   projectCode: string;
   isActive?: boolean;
+  isAccessAllowed?: boolean;
 };
 
 export class UpdateCourtMasterService {
@@ -42,6 +43,11 @@ export class UpdateCourtMasterService {
         ? Boolean(input.isActive)
         : record.isActive;
 
+    const isAccessAllowed =
+      typeof input.isAccessAllowed !== "undefined"
+        ? Boolean(input.isAccessAllowed)
+        : (record as any).isAccessAllowed ?? true;
+
     // Re-construct & validate with Model before saving
     const courtModel = CourtMasterModel.make({
       id: targetId,
@@ -51,6 +57,7 @@ export class UpdateCourtMasterService {
       location: input.location || record.location,
       projectCode: input.projectCode || record.projectCode,
       isActive: isActive,
+      isAccessAllowed: isAccessAllowed,
       isArchived: record.isArchived ?? false,
     });
 

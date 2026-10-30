@@ -1,5 +1,6 @@
 import CardProcessingMaster from "@/schemas/card-processing-master-schema/card-processing-master-schema";
 import { DateTime } from "@/utility/date-time";
+import { RequestRecord } from "@/records/request-record";
 
 export class CardPaymentHelper {
   public static isCardRequest(id: string): boolean {
@@ -82,6 +83,81 @@ export class CardPaymentHelper {
       );
     } catch (e) {
       console.error("Error marking card requests failed:", e);
+    }
+  }
+
+  /**
+   * Card requests ko RequestRecord[] format mein convert karta hai
+   * taake B1Api.createInvoice directly use ho sake.
+   */
+  public static async buildRequestRecordsForB1(
+    cardIds: string[]
+  ): Promise<RequestRecord[]> {
+    if (!cardIds || cardIds.length === 0) return [];
+    try {
+      const records = await CardProcessingMaster.find({
+        $or: [{ requestId: { $in: cardIds } }, { id: { $in: cardIds } }],
+        isArchived: false,
+      }).lean();
+
+      return records.map((r: any) => ({
+        id: r.requestId || r.id,
+        type: "general" as const,
+        categoryId: "Card Replacement",
+        categoryName: "Card Replacement",
+        project: r.projectCode || null,
+        subCategoryName: null,
+        title: "Card Replacement",
+        description: "",
+        customerId: r.residentId || "",
+        customerName: r.residentName || "",
+        customerCode: "",
+        staffId: null,
+        staffName: null,
+        salesPersonId: null,
+        unitId: r.apartmentId || "",
+        unitName: r.apartmentNo || "",
+        status: "",
+        priority: "low" as const,
+        visitDate: "",
+        visitTime: "none" as const,
+        totalPrice: r.totalFee || 0,
+        totalPayments: 0,
+        isApproved: false,
+        approvedAt: null,
+        approveRemarks: null,
+        isRefused: false,
+        refusedAt: null,
+        refuseRemarks: null,
+        completedAt: null,
+        completeRemarks: null,
+        completeAttachments: [],
+        items: [
+          {
+            itemId: "CARD-REPLACEMENT",
+            name: `Card Replacement - ${r.reason || ""}`.trim(),
+            quantity: 1,
+            price: r.totalFee || 0,
+            totalPrice: r.totalFee || 0,
+          },
+        ],
+        attachments: [],
+        updates: [],
+        payments: [],
+        rate: null,
+        isIntangible: true,
+        pin: null,
+        vehicle: [],
+        startTime: "",
+        duration: "",
+        comments: "",
+        buyAttachments: [],
+        creationDate: "",
+        isArchived: false,
+      }));
+    } catch (e) {
+      console.error("Error building request records for B1:", e);
+      return [];
     }
   }
 }

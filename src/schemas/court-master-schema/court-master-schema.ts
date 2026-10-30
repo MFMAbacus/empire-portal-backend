@@ -8,6 +8,7 @@ export interface ICourtMaster extends Document {
   location: string;
   projectCode: string;
   isActive: boolean;
+  isAccessAllowed: boolean;
   isArchived: boolean;
 }
 
@@ -20,6 +21,7 @@ const CourtMasterSchema: Schema = new Schema(
     location: { type: String, required: true },
     projectCode: { type: String, required: true },
     isActive: { type: Boolean, default: true },
+    isAccessAllowed: { type: Boolean, default: true },
     isArchived: { type: Boolean, default: false },
   },
   { timestamps: true }

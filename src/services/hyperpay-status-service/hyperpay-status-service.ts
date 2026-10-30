@@ -122,14 +122,50 @@ export class HyperPayStatusService {
       if (cardRequestIds.length > 0) {
         await CardPaymentHelper.confirmCardRequestsPayment(cardRequestIds, paymentRecord);
         if (normalRequestIds.length === 0) {
+          // Card-only payment: B1 mein bhi invoice create karo
+          const cardRequestsAsRecords = await CardPaymentHelper.buildRequestRecordsForB1(cardRequestIds);
+
+          let salespersonId: string | null = null;
+          if (paymentRecord.staffId !== null) {
+            const staffRecord = await this._userRepository.get(paymentRecord.staffId);
+            if (staffRecord) {
+              salespersonId = staffRecord.salespersonId;
+            }
+          }
+
+          let b1ResponseData;
+          try {
+            b1ResponseData = await B1Api.createInvoice({
+              requestsRecords: cardRequestsAsRecords,
+              paymentRecord,
+              salespersonId,
+            });
+          } catch (error: any) {
+            paymentRecord.sapMessage = error?.Description ?? "Error During B1 Create Invoice (Card)";
+            paymentRecord.sapStatus = false;
+            paymentRecord.retryDate = DateTime.now().toString();
+            paymentRecord.isFailed = false;
+            await this._paymentRepository.Update(paymentRecord);
+            await transactionService.logB1CreateInvoiceFailed(
+              paymentRecord,
+              paymentRecord.sapMessage ?? "",
+            );
+            return Result.fail(Failure.make({ code: "b1-error", data: error }));
+          }
+
+          const invoiceDocNum = await B1Api.getDocNumByDocEntry(b1ResponseData?.DocEntry ?? "");
+
           paymentRecord.callBackAttempted = true;
           paymentRecord.isFailed = false;
           paymentRecord.isConfirmed = true;
           paymentRecord.confirmedAt = DateTime.now().toString();
+          paymentRecord.sapMessage = b1ResponseData?.DocEntry ?? "";
+          paymentRecord.docNum = invoiceDocNum;
           paymentRecord.sapStatus = true;
-          paymentRecord.sapMessage = "Card Payment Completed";
+          paymentRecord.retryDate = DateTime.now().toString();
+
           await this._paymentRepository.Update(paymentRecord);
-          await transactionService.logPaymentConfirmed(paymentRecord, paymentRecord.id);
+          await transactionService.logPaymentConfirmed(paymentRecord, b1ResponseData?.DocEntry);
           return Result.ok({ message: "Payment successfully processed" });
         }
       }
